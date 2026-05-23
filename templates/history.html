@@ -1,0 +1,108 @@
+{% extends "base.html" %}
+{% block title %}History{% endblock %}
+{% block content %}
+<div class="page-header animate-1">
+  <div class="page-title">📜 Prediction History</div>
+  <div class="page-sub">All AI analyses from your current session</div>
+</div>
+
+{% if not history %}
+<div class="card animate-2" style="text-align:center;padding:3rem 2rem;">
+  <div style="font-size:3rem;margin-bottom:1rem;">📭</div>
+  <div style="font-family:'Fraunces',serif;font-size:1.3rem;font-weight:700;color:var(--text);margin-bottom:.5rem;">No predictions yet</div>
+  <div style="font-size:.88rem;color:var(--text3);margin-bottom:1.5rem;">Run your first AI analysis to see results here.</div>
+  <a href="/analysis" style="display:inline-flex;align-items:center;gap:.5rem;
+    background:linear-gradient(135deg,var(--teal),#1AA888);color:#fff;
+    padding:.7rem 1.5rem;border-radius:12px;text-decoration:none;
+    font-weight:700;font-size:.88rem;box-shadow:0 4px 14px rgba(43,191,160,.3);">
+    🔬 Run Analysis
+  </a>
+</div>
+{% else %}
+<div class="card animate-2" style="margin-bottom:1.5rem;">
+  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem;">
+    <div style="font-weight:700;font-size:.95rem;color:var(--text);">
+      {{ history|length }} prediction{{ 's' if history|length != 1 else '' }} recorded
+    </div>
+    <div style="display:flex;gap:.5rem;">
+      <span class="chip chip-danger">{{ history|selectattr('result','eq','Diabetic')|list|length }} Diabetic</span>
+      <span class="chip chip-teal">{{ history|selectattr('result','eq','No Diabetes')|list|length }} Healthy</span>
+    </div>
+  </div>
+  <div style="overflow-x:auto;">
+    <table style="width:100%;border-collapse:collapse;font-size:.84rem;">
+      <thead>
+        <tr style="background:var(--surface2);">
+          <th style="padding:.5rem .7rem;text-align:left;color:var(--text3);font-weight:700;">#</th>
+          <th style="padding:.5rem .7rem;text-align:center;color:var(--text3);font-weight:700;">Age</th>
+          <th style="padding:.5rem .7rem;text-align:center;color:var(--text3);font-weight:700;">Glucose</th>
+          <th style="padding:.5rem .7rem;text-align:center;color:var(--text3);font-weight:700;">BMI</th>
+          <th style="padding:.5rem .7rem;text-align:center;color:var(--text3);font-weight:700;">Result</th>
+          <th style="padding:.5rem .7rem;text-align:center;color:var(--text3);font-weight:700;">Confidence</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for h in history|reverse %}
+        <tr style="{{ 'background:var(--surface2);' if loop.index is odd else '' }};transition:background .15s;"
+          onmouseover="this.style.background='var(--teal-lt)'"
+          onmouseout="this.style.background='{{ 'var(--surface2)' if loop.index is odd else 'transparent' }}'">
+          <td style="padding:.42rem .7rem;color:var(--text3);">{{ history|length - loop.index0 }}</td>
+          <td style="padding:.42rem .7rem;text-align:center;color:var(--text2);">{{ h.age|int }}</td>
+          <td style="padding:.42rem .7rem;text-align:center;color:var(--text2);">{{ h.glucose|int }}</td>
+          <td style="padding:.42rem .7rem;text-align:center;color:var(--text2);">{{ h.bmi }}</td>
+          <td style="padding:.42rem .7rem;text-align:center;">
+            <span class="chip {{ 'chip-danger' if h.result == 'Diabetic' else 'chip-teal' }}" style="font-size:.72rem;">
+              {{ '⚠️ ' if h.result == 'Diabetic' else '✅ ' }}{{ h.result }}
+            </span>
+          </td>
+          <td style="padding:.42rem .7rem;text-align:center;">
+            <div style="display:flex;align-items:center;gap:.5rem;justify-content:center;">
+              <div style="flex:1;max-width:80px;height:6px;background:var(--border);border-radius:10px;overflow:hidden;">
+                <div style="width:{{ h.confidence }}%;height:100%;border-radius:10px;
+                  background:{{ 'var(--danger)' if h.result == 'Diabetic' else 'var(--teal)' }};"></div>
+              </div>
+              <span style="font-weight:700;color:var(--text);font-size:.8rem;">{{ h.confidence }}%</span>
+            </div>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- Trend chart -->
+{% if history|length >= 2 %}
+<div class="card animate-3">
+  <div style="font-weight:700;font-size:.9rem;color:var(--text);margin-bottom:1rem;">📈 Confidence Score Trend</div>
+  <canvas id="trendChart" height="160"></canvas>
+</div>
+{% endif %}
+{% endif %}
+{% endblock %}
+{% block scripts %}
+{% if history|length >= 2 %}
+<script>
+const hData = {{ history|tojson }};
+new Chart(document.getElementById('trendChart').getContext('2d'),{
+  type:'line',
+  data:{
+    labels: hData.map((_,i)=>`#${i+1}`),
+    datasets:[{
+      label:'Confidence %',
+      data: hData.map(h=>h.confidence),
+      borderColor:'#2BBFA0',backgroundColor:'rgba(43,191,160,.08)',
+      pointBackgroundColor: hData.map(h=>h.result==='Diabetic'?'#E05252':'#2BBFA0'),
+      pointRadius:6,pointHoverRadius:8,
+      borderWidth:2.5,fill:true,tension:.35
+    }]
+  },
+  options:{responsive:true,
+    plugins:{legend:{display:false},
+      tooltip:{callbacks:{label:ctx=>`${hData[ctx.dataIndex].result} — ${ctx.raw}% confidence`}}},
+    scales:{x:{grid:{display:false},ticks:{color:'#8FA0B4',font:{family:'DM Sans',size:11}}},
+      y:{min:0,max:100,grid:{color:'rgba(0,0,0,.05)'},ticks:{color:'#8FA0B4',font:{family:'DM Sans',size:11},callback:v=>v+'%'}}}}
+});
+</script>
+{% endif %}
+{% endblock %}

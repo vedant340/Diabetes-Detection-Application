@@ -1,0 +1,213 @@
+{% extends "base.html" %}
+{% block title %}Dashboard{% endblock %}
+{% block content %}
+
+<div class="page-header animate-1">
+  <div style="display:flex;align-items:center;justify-content:space-between;">
+    <div>
+      <div style="display:flex;align-items:center;gap:.6rem;margin-bottom:.3rem;">
+        <span class="dot-live"></span>
+        <span style="font-size:.72rem;font-weight:700;color:var(--teal);letter-spacing:.06em;text-transform:uppercase;">System Active</span>
+      </div>
+      <div class="page-title">Good day, {{ username }} 👋</div>
+      <div class="page-sub">Your clinical AI dashboard is ready. SVM model accuracy: <strong style="color:var(--teal)">{{ cv }}%</strong></div>
+    </div>
+    <a href="/analysis" style="display:inline-flex;align-items:center;gap:.5rem;
+      background:linear-gradient(135deg,var(--teal),#1AA888);color:#fff;
+      padding:.7rem 1.4rem;border-radius:12px;text-decoration:none;
+      font-weight:700;font-size:.88rem;box-shadow:0 4px 16px rgba(43,191,160,.35);
+      transition:transform .2s,box-shadow .2s;"
+      onmouseover="this.style.transform='translateY(-2px)';this.style.boxShadow='0 8px 24px rgba(43,191,160,.45)'"
+      onmouseout="this.style.transform='';this.style.boxShadow='0 4px 16px rgba(43,191,160,.35)'">
+      🔬 Run Analysis
+    </a>
+  </div>
+</div>
+
+<!-- KPI cards -->
+<div class="grid-4 animate-2" style="margin-bottom:1.5rem;">
+  <div class="card" style="border-top:3px solid var(--teal);">
+    <div class="card-title">Total Patients</div>
+    <div class="card-value">{{ total }}</div>
+    <div class="card-sub">Training dataset</div>
+  </div>
+  <div class="card" style="border-top:3px solid var(--blue);">
+    <div class="card-title">Diabetic Cases</div>
+    <div class="card-value">{{ diab }}</div>
+    <div class="card-sub" style="color:var(--danger);">{{ "%.1f"|format(diab/total*100) }}% of dataset</div>
+  </div>
+  <div class="card" style="border-top:3px solid #6DD4B8;">
+    <div class="card-title">Avg Glucose</div>
+    <div class="card-value">{{ avg_glucose }}</div>
+    <div class="card-sub">mg/dL</div>
+  </div>
+  <div class="card" style="border-top:3px solid var(--lavender);">
+    <div class="card-title">Model CV Accuracy</div>
+    <div class="card-value">{{ cv }}%</div>
+    <div class="card-sub">RBF · GridSearchCV</div>
+  </div>
+</div>
+
+<!-- Charts row -->
+<div class="grid-2 animate-3" style="margin-bottom:1.5rem;">
+  <div class="card">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem;">
+      <div>
+        <div style="font-weight:700;font-size:.95rem;color:var(--text);">Dataset Distribution</div>
+        <div style="font-size:.78rem;color:var(--text3);">Diabetic vs Non-Diabetic</div>
+      </div>
+      <span class="chip chip-teal">{{ total }} patients</span>
+    </div>
+    <canvas id="distChart" height="200"></canvas>
+  </div>
+  <div class="card">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem;">
+      <div>
+        <div style="font-weight:700;font-size:.95rem;color:var(--text);">Global Diabetes Stats</div>
+        <div style="font-size:.78rem;color:var(--text3);">Cases by continent (IDF 2021)</div>
+      </div>
+      <span class="chip chip-blue">537M global</span>
+    </div>
+    <canvas id="globalChart" height="200"></canvas>
+  </div>
+</div>
+
+<!-- Health tips + quick stats -->
+<div class="grid-2 animate-4">
+  <div class="card">
+    <div style="font-weight:700;font-size:.95rem;color:var(--text);margin-bottom:1rem;">💡 Daily Health Tips</div>
+    <div style="display:flex;flex-direction:column;gap:.6rem;">
+      {% set tips = [
+        ("🥗","Balanced Diet","Vegetables, whole grains & lean protein"),
+        ("🏃","Stay Active","30 min moderate exercise, 5x per week"),
+        ("💧","Hydration","8–10 glasses of water daily"),
+        ("😴","Sleep Well","7–8 hours quality sleep nightly"),
+        ("🩸","Monitor","Regular blood glucose checks"),
+        ("🚭","Healthy Habits","Avoid smoking, limit alcohol")
+      ] %}
+      {% for ic,title,desc in tips %}
+      <div style="display:flex;align-items:center;gap:.7rem;padding:.6rem .8rem;
+        background:var(--surface2);border-radius:10px;transition:background .2s;"
+        onmouseover="this.style.background='var(--teal-lt)'"
+        onmouseout="this.style.background='var(--surface2)'">
+        <span style="font-size:1.1rem;">{{ ic }}</span>
+        <div>
+          <div style="font-weight:600;font-size:.82rem;color:var(--text);">{{ title }}</div>
+          <div style="font-size:.72rem;color:var(--text3);">{{ desc }}</div>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+
+  <div class="card">
+    <div style="font-weight:700;font-size:.95rem;color:var(--text);margin-bottom:1rem;">📊 Quick BMI Calculator</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:.8rem;margin-bottom:1rem;">
+      <div>
+        <label style="font-size:.72rem;font-weight:700;color:var(--teal);letter-spacing:.06em;text-transform:uppercase;display:block;margin-bottom:.35rem;">Height (cm)</label>
+        <input id="bmiH" type="number" value="170" min="100" max="250"
+          style="width:100%;padding:.65rem .9rem;background:var(--surface2);
+          border:1.5px solid var(--border);border-radius:10px;font-size:.9rem;
+          color:var(--text);outline:none;transition:border-color .2s;"
+          onfocus="this.style.borderColor='var(--teal)'"
+          onblur="this.style.borderColor='var(--border)'"
+          oninput="calcBMI()">
+      </div>
+      <div>
+        <label style="font-size:.72rem;font-weight:700;color:var(--teal);letter-spacing:.06em;text-transform:uppercase;display:block;margin-bottom:.35rem;">Weight (kg)</label>
+        <input id="bmiW" type="number" value="65" min="30" max="200"
+          style="width:100%;padding:.65rem .9rem;background:var(--surface2);
+          border:1.5px solid var(--border);border-radius:10px;font-size:.9rem;
+          color:var(--text);outline:none;transition:border-color .2s;"
+          onfocus="this.style.borderColor='var(--teal)'"
+          onblur="this.style.borderColor='var(--border)'"
+          oninput="calcBMI()">
+      </div>
+    </div>
+    <div id="bmiResult" style="background:var(--teal-lt);border:1px solid var(--teal-mid);
+      border-radius:12px;padding:1rem 1.2rem;text-align:center;">
+      <div id="bmiVal" style="font-family:'Fraunces',serif;font-size:2rem;font-weight:700;color:var(--teal);">22.5</div>
+      <div id="bmiCat" style="font-size:.82rem;color:var(--text2);margin-top:.2rem;">Normal Weight ✅</div>
+    </div>
+
+    <div style="margin-top:1.2rem;">
+      <div style="font-weight:700;font-size:.88rem;color:var(--text);margin-bottom:.7rem;">🌡️ Reference Ranges</div>
+      {% set ranges = [
+        ("Glucose (fasting)","70–99 mg/dL","Normal"),
+        ("Blood Pressure","< 80 mmHg","Diastolic"),
+        ("BMI","18.5–24.9","Healthy range"),
+        ("Insulin","16–166 μU/mL","Normal serum")
+      ] %}
+      {% for metric,val,note in ranges %}
+      <div style="display:flex;justify-content:space-between;align-items:center;
+        padding:.4rem 0;border-bottom:1px solid var(--border);">
+        <span style="font-size:.8rem;color:var(--text2);">{{ metric }}</span>
+        <div style="text-align:right;">
+          <span style="font-size:.8rem;font-weight:600;color:var(--text);">{{ val }}</span>
+          <div style="font-size:.66rem;color:var(--text3);">{{ note }}</div>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+</div>
+
+{% endblock %}
+{% block scripts %}
+<script>
+// Distribution donut
+const dCtx = document.getElementById('distChart').getContext('2d');
+new Chart(dCtx, {
+  type:'doughnut',
+  data:{
+    labels:['No Diabetes','Diabetic'],
+    datasets:[{data:[{{ nodiab }},{{ diab }}],
+      backgroundColor:['#2BBFA0','#4A90D9'],
+      borderColor:['#fff','#fff'],borderWidth:3,hoverOffset:8}]
+  },
+  options:{
+    responsive:true,plugins:{
+      legend:{position:'bottom',labels:{font:{family:'DM Sans',size:12},padding:16,color:'#5A6B7E'}},
+      tooltip:{callbacks:{label:ctx=>`${ctx.label}: ${ctx.raw} (${((ctx.raw/({{ diab }}+{{ nodiab }}))*100).toFixed(1)}%)`}}
+    },cutout:'60%'
+  }
+});
+
+// Global bar
+const gCtx = document.getElementById('globalChart').getContext('2d');
+new Chart(gCtx, {
+  type:'bar',
+  data:{
+    labels:['Asia','Africa','N.America','Europe','S.America','Oceania'],
+    datasets:[{label:'Cases (M)',data:[226,24,51,61,32,2.5],
+      backgroundColor:['#2BBFA0','#4A90D9','#A8B4D8','#6DD4B8','#8BBF9F','#F5A623'],
+      borderRadius:8,borderSkipped:false}]
+  },
+  options:{
+    responsive:true,
+    plugins:{legend:{display:false},
+      tooltip:{callbacks:{label:ctx=>`${ctx.raw}M patients`}}},
+    scales:{
+      x:{grid:{display:false},ticks:{font:{family:'DM Sans',size:11},color:'#8FA0B4'}},
+      y:{grid:{color:'rgba(0,0,0,.05)'},ticks:{font:{family:'DM Sans',size:11},color:'#8FA0B4'}}
+    }
+  }
+});
+
+// BMI calc
+function calcBMI(){
+  const h=parseFloat(document.getElementById('bmiH').value)||170;
+  const w=parseFloat(document.getElementById('bmiW').value)||65;
+  const bmi=(w/((h/100)**2)).toFixed(1);
+  document.getElementById('bmiVal').textContent=bmi;
+  let cat,col;
+  if(bmi<18.5){cat='Underweight 🟡';col='#F5A623';}
+  else if(bmi<25){cat='Normal Weight ✅';col='var(--teal)';}
+  else if(bmi<30){cat='Overweight 🟠';col='#F5A623';}
+  else{cat='Obese 🔴';col='#E05252';}
+  document.getElementById('bmiCat').textContent=cat;
+  document.getElementById('bmiVal').style.color=col;
+}
+calcBMI();
+</script>
+{% endblock %}

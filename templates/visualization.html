@@ -1,0 +1,133 @@
+{% extends "base.html" %}
+{% block title %}Visualization{% endblock %}
+{% block content %}
+<div class="page-header animate-1">
+  <div class="page-title">📊 Data Visualization Hub</div>
+  <div class="page-sub">Explore the Pima Indians Diabetes Dataset — {{ diab_count + nodiab_count }} patients</div>
+</div>
+
+<div class="grid-2 animate-2" style="margin-bottom:1.5rem;">
+  <div class="card">
+    <div style="font-weight:700;font-size:.9rem;color:var(--text);margin-bottom:1rem;">🩸 Glucose Distribution</div>
+    <canvas id="glucChart" height="220"></canvas>
+  </div>
+  <div class="card">
+    <div style="font-weight:700;font-size:.9rem;color:var(--text);margin-bottom:1rem;">🎂 Age Distribution</div>
+    <canvas id="ageChart" height="220"></canvas>
+  </div>
+</div>
+
+<div class="grid-2 animate-3" style="margin-bottom:1.5rem;">
+  <div class="card">
+    <div style="font-weight:700;font-size:.9rem;color:var(--text);margin-bottom:1rem;">⚖️ BMI Distribution</div>
+    <canvas id="bmiChart" height="220"></canvas>
+  </div>
+  <div class="card">
+    <div style="font-weight:700;font-size:.9rem;color:var(--text);margin-bottom:1rem;">📊 Dataset Split</div>
+    <canvas id="splitChart" height="220"></canvas>
+  </div>
+</div>
+
+<div class="card animate-4">
+  <div style="font-weight:700;font-size:.9rem;color:var(--text);margin-bottom:1rem;">🔥 Feature Correlation Heatmap</div>
+  <div id="heatmapContainer" style="overflow-x:auto;"></div>
+</div>
+{% endblock %}
+{% block scripts %}
+<script>
+const glucNod = {{ gluc_nod|safe }};
+const glucD   = {{ gluc_d|safe }};
+const agesNod = {{ ages_nod|safe }};
+const agesD   = {{ ages_d|safe }};
+const bmiNod  = {{ bmi_nod|safe }};
+const bmiD    = {{ bmi_d|safe }};
+const corr    = {{ corr|safe }};
+const featLabels = {{ feat_labels|safe }};
+
+function makeBins(data, min, max, bins) {
+  const step = (max-min)/bins;
+  const counts = new Array(bins).fill(0);
+  data.forEach(v => {
+    const i = Math.min(Math.floor((v-min)/step), bins-1);
+    if(i>=0) counts[i]++;
+  });
+  return { counts, labels: Array.from({length:bins}, (_,i) => (min+i*step).toFixed(0)) };
+}
+
+// Glucose
+const gNod = makeBins(glucNod, 50, 300, 20);
+const gD   = makeBins(glucD,   50, 300, 20);
+new Chart(document.getElementById('glucChart').getContext('2d'),{
+  type:'bar',
+  data:{labels:gNod.labels,datasets:[
+    {label:'No Diabetes',data:gNod.counts,backgroundColor:'rgba(43,191,160,.6)',borderRadius:4},
+    {label:'Diabetic',   data:gD.counts,  backgroundColor:'rgba(74,144,217,.6)', borderRadius:4}
+  ]},
+  options:{responsive:true,plugins:{legend:{labels:{font:{family:'DM Sans'},color:'#5A6B7E'}}},
+    scales:{x:{grid:{display:false},ticks:{color:'#8FA0B4',font:{size:10}}},
+      y:{grid:{color:'rgba(0,0,0,.05)'},ticks:{color:'#8FA0B4',font:{size:10}}}}}
+});
+
+// Age
+const aNod = makeBins(agesNod, 20, 80, 12);
+const aD   = makeBins(agesD,   20, 80, 12);
+new Chart(document.getElementById('ageChart').getContext('2d'),{
+  type:'bar',
+  data:{labels:aNod.labels,datasets:[
+    {label:'No Diabetes',data:aNod.counts,backgroundColor:'rgba(107,212,184,.6)',borderRadius:4},
+    {label:'Diabetic',   data:aD.counts,  backgroundColor:'rgba(168,180,216,.7)', borderRadius:4}
+  ]},
+  options:{responsive:true,plugins:{legend:{labels:{font:{family:'DM Sans'},color:'#5A6B7E'}}},
+    scales:{x:{grid:{display:false},ticks:{color:'#8FA0B4',font:{size:10}}},
+      y:{grid:{color:'rgba(0,0,0,.05)'},ticks:{color:'#8FA0B4',font:{size:10}}}}}
+});
+
+// BMI
+const bNod = makeBins(bmiNod, 15, 60, 15);
+const bD   = makeBins(bmiD,   15, 60, 15);
+new Chart(document.getElementById('bmiChart').getContext('2d'),{
+  type:'bar',
+  data:{labels:bNod.labels,datasets:[
+    {label:'No Diabetes',data:bNod.counts,backgroundColor:'rgba(139,191,159,.6)',borderRadius:4},
+    {label:'Diabetic',   data:bD.counts,  backgroundColor:'rgba(245,166,35,.55)', borderRadius:4}
+  ]},
+  options:{responsive:true,plugins:{legend:{labels:{font:{family:'DM Sans'},color:'#5A6B7E'}}},
+    scales:{x:{grid:{display:false},ticks:{color:'#8FA0B4',font:{size:10}}},
+      y:{grid:{color:'rgba(0,0,0,.05)'},ticks:{color:'#8FA0B4',font:{size:10}}}}}
+});
+
+// Split donut
+new Chart(document.getElementById('splitChart').getContext('2d'),{
+  type:'doughnut',
+  data:{labels:['No Diabetes','Diabetic'],
+    datasets:[{data:[{{ nodiab_count }},{{ diab_count }}],
+      backgroundColor:['#2BBFA0','#4A90D9'],borderColor:'#fff',borderWidth:4,hoverOffset:10}]},
+  options:{responsive:true,cutout:'62%',
+    plugins:{legend:{position:'bottom',labels:{font:{family:'DM Sans',size:12},color:'#5A6B7E',padding:14}},
+      tooltip:{callbacks:{label:ctx=>`${ctx.label}: ${ctx.raw} (${((ctx.raw/({{ nodiab_count }}+{{ diab_count }}))*100).toFixed(1)}%)`}}}}
+});
+
+// Heatmap
+const container = document.getElementById('heatmapContainer');
+const n = featLabels.length;
+const minV = Math.min(...corr.flat()), maxV = Math.max(...corr.flat());
+function heatColor(v){
+  if(v>0.5) return `rgba(43,191,160,${0.2+v*0.8})`;
+  if(v<-0.2) return `rgba(224,82,82,${0.2+Math.abs(v)*0.8})`;
+  return `rgba(74,144,217,${0.1+Math.abs(v)*0.5})`;
+}
+let html='<table style="width:100%;border-collapse:collapse;font-size:.72rem;">';
+html+='<tr><td></td>'+featLabels.map(l=>`<th style="padding:.25rem .3rem;color:var(--text3);font-weight:600;text-align:center;white-space:nowrap;">${l}</th>`).join('')+'</tr>';
+corr.forEach((row,i)=>{
+  html+=`<tr><th style="padding:.25rem .4rem;color:var(--text3);font-weight:600;white-space:nowrap;">${featLabels[i]}</th>`;
+  row.forEach((v,j)=>{
+    const bg=heatColor(v);
+    const tc=Math.abs(v)>0.5?'#fff':v>0.3?'#1A2332':'var(--text2)';
+    html+=`<td style="background:${bg};color:${tc};padding:.3rem .2rem;text-align:center;border-radius:4px;font-weight:600;">${v.toFixed(2)}</td>`;
+  });
+  html+='</tr>';
+});
+html+='</table>';
+container.innerHTML=html;
+</script>
+{% endblock %}

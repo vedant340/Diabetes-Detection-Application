@@ -1,0 +1,180 @@
+{% extends "base.html" %}
+{% block title %}Information{% endblock %}
+{% block content %}
+<div class="page-header animate-1">
+  <div class="page-title">📚 Diabetes — Complete Guide</div>
+  <div class="page-sub">Evidence-based information about types, symptoms, causes & prevention</div>
+</div>
+
+<!-- Tab navigation -->
+<div style="display:flex;gap:.5rem;margin-bottom:1.5rem;flex-wrap:wrap;" class="animate-2">
+  {% for id,label in [("what","What is Diabetes"),("types","Types"),("symptoms","Symptoms"),("causes","Causes"),("prevention","Prevention"),("treatment","Treatment")] %}
+  <button onclick="showTab('{{ id }}')" id="tab-{{ id }}"
+    style="padding:.5rem 1.1rem;border-radius:10px;border:1.5px solid var(--border);
+    font-family:'DM Sans',sans-serif;font-size:.82rem;font-weight:600;cursor:pointer;
+    transition:all .2s;background:var(--surface);color:var(--text2);"
+    class="tab-btn">{{ label }}</button>
+  {% endfor %}
+</div>
+
+<div id="what" class="tab-content animate-3">
+  <div class="card">
+    <div style="font-family:'Fraunces',serif;font-size:1.3rem;font-weight:700;color:var(--text);margin-bottom:.8rem;">What is Diabetes Mellitus?</div>
+    <p style="font-size:.88rem;color:var(--text2);line-height:1.75;margin-bottom:1.2rem;">
+      Diabetes mellitus is a chronic metabolic disease characterized by elevated blood glucose levels, which over time causes serious damage to the heart, blood vessels, eyes, kidneys, and nerves. It occurs when the pancreas does not produce enough insulin, or when the body cannot effectively use the insulin it produces.
+    </p>
+    <div class="grid-3">
+      <div style="background:var(--teal-lt);border:1px solid var(--teal-mid);border-radius:14px;padding:1.2rem;text-align:center;">
+        <div style="font-size:1.5rem;margin-bottom:.5rem;">🟢</div>
+        <div style="font-weight:700;color:var(--teal);font-size:.9rem;">Normal</div>
+        <div style="font-family:'Fraunces',serif;font-size:1.2rem;font-weight:700;color:var(--text);margin:.3rem 0;">70–99</div>
+        <div style="font-size:.75rem;color:var(--text3);">mg/dL fasting</div>
+      </div>
+      <div style="background:var(--warn-lt);border:1px solid #FDE68A;border-radius:14px;padding:1.2rem;text-align:center;">
+        <div style="font-size:1.5rem;margin-bottom:.5rem;">🟡</div>
+        <div style="font-weight:700;color:var(--warn);font-size:.9rem;">Pre-Diabetic</div>
+        <div style="font-family:'Fraunces',serif;font-size:1.2rem;font-weight:700;color:var(--text);margin:.3rem 0;">100–125</div>
+        <div style="font-size:.75rem;color:var(--text3);">mg/dL fasting</div>
+      </div>
+      <div style="background:var(--danger-lt);border:1px solid #FECACA;border-radius:14px;padding:1.2rem;text-align:center;">
+        <div style="font-size:1.5rem;margin-bottom:.5rem;">🔴</div>
+        <div style="font-weight:700;color:var(--danger);font-size:.9rem;">Diabetic</div>
+        <div style="font-family:'Fraunces',serif;font-size:1.2rem;font-weight:700;color:var(--text);margin:.3rem 0;">≥ 126</div>
+        <div style="font-size:.75rem;color:var(--text3);">mg/dL fasting</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="types" class="tab-content animate-3" style="display:none;">
+  <div style="display:flex;flex-direction:column;gap:1rem;">
+    {% for title,desc,onset,tx,color in [
+      ("🔵 Type 1 Diabetes","An autoimmune condition where the immune system destroys insulin-producing beta cells. Requires lifelong insulin therapy. Usually diagnosed in childhood.","Children/Young Adults","Insulin injections","var(--blue)"),
+      ("🟠 Type 2 Diabetes","The most common form (90–95%). The body becomes resistant to insulin. Strongly linked to lifestyle. Manageable with diet, exercise & medication.","Adults 35+","Oral meds + lifestyle","var(--warn)"),
+      ("🤰 Gestational Diabetes","Occurs during pregnancy. Usually resolves after birth but increases future Type 2 risk for mother and child.","Pregnant women","Diet control + insulin","var(--teal)"),
+    ] %}
+    <div class="card" style="border-left:4px solid {{ color }};">
+      <div style="font-family:'Fraunces',serif;font-size:1.1rem;font-weight:700;color:var(--text);margin-bottom:.5rem;">{{ title }}</div>
+      <p style="font-size:.85rem;color:var(--text2);line-height:1.65;margin-bottom:.8rem;">{{ desc }}</p>
+      <div style="display:flex;gap:.5rem;">
+        <span class="chip chip-teal">Onset: {{ onset }}</span>
+        <span class="chip chip-blue">Tx: {{ tx }}</span>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+</div>
+
+<div id="symptoms" class="tab-content animate-3" style="display:none;">
+  <div class="grid-4">
+    {% for ic,sym,desc in [
+      ("🚿","Frequent Urination","Kidneys flush excess glucose"),
+      ("🥤","Excessive Thirst","Dehydration from urination"),
+      ("😴","Extreme Fatigue","Cells can't use glucose"),
+      ("🌫️","Blurred Vision","Fluid changes in eye lens"),
+      ("🤕","Slow Healing","Impaired blood circulation"),
+      ("📉","Weight Loss","Body breaks down fat/muscle"),
+      ("🦶","Numbness","Nerve damage (neuropathy)"),
+      ("😷","Infections","Weakened immune system")
+    ] %}
+    <div class="card" style="text-align:center;padding:1.1rem;">
+      <div style="font-size:1.8rem;margin-bottom:.5rem;">{{ ic }}</div>
+      <div style="font-weight:700;font-size:.85rem;color:var(--text);margin-bottom:.2rem;">{{ sym }}</div>
+      <div style="font-size:.74rem;color:var(--text3);">{{ desc }}</div>
+    </div>
+    {% endfor %}
+  </div>
+</div>
+
+<div id="causes" class="tab-content animate-3" style="display:none;">
+  <div class="grid-2">
+    <div class="card">
+      <div style="font-weight:700;color:var(--text);margin-bottom:.8rem;font-size:.95rem;">⚙️ Modifiable Risk Factors</div>
+      {% for item in ["Overweight/Obesity (BMI > 25)","Physical inactivity","Unhealthy diet (high sugar/fat)","Smoking","High blood pressure","High cholesterol"] %}
+      <div style="display:flex;align-items:center;gap:.6rem;padding:.4rem 0;border-bottom:1px solid var(--border);">
+        <span style="color:var(--danger);font-size:.9rem;">⚠️</span>
+        <span style="font-size:.84rem;color:var(--text2);">{{ item }}</span>
+      </div>
+      {% endfor %}
+    </div>
+    <div class="card">
+      <div style="font-weight:700;color:var(--text);margin-bottom:.8rem;font-size:.95rem;">🧬 Non-Modifiable Risk Factors</div>
+      {% for item in ["Family history of diabetes","Age (risk increases after 45)","Ethnicity (South Asian, African, Hispanic)","Previous gestational diabetes","Polycystic ovary syndrome (PCOS)","Low birth weight"] %}
+      <div style="display:flex;align-items:center;gap:.6rem;padding:.4rem 0;border-bottom:1px solid var(--border);">
+        <span style="color:var(--blue);font-size:.9rem;">ℹ️</span>
+        <span style="font-size:.84rem;color:var(--text2);">{{ item }}</span>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+</div>
+
+<div id="prevention" class="tab-content animate-3" style="display:none;">
+  <div class="card" style="margin-bottom:1rem;">
+    <div style="font-weight:700;color:var(--text);font-size:.95rem;margin-bottom:.5rem;">💡 Up to 80% of Type 2 Diabetes cases can be prevented with lifestyle changes.</div>
+  </div>
+  <div class="grid-3">
+    {% for ic,title,desc in [
+      ("⚖️","Healthy Weight","Losing 5–7% of body weight reduces risk by 58%"),
+      ("🥗","Balanced Diet","Mediterranean or DASH diet; reduce processed foods"),
+      ("🏃","Regular Exercise","150+ min/week moderate activity"),
+      ("🚭","Quit Smoking","Smokers are 30–40% more likely to develop T2D"),
+      ("💧","Stay Hydrated","Replace sugary drinks with water"),
+      ("🩺","Regular Screening","Annual HbA1c test if you have risk factors")
+    ] %}
+    <div class="card">
+      <div style="font-size:1.8rem;margin-bottom:.5rem;">{{ ic }}</div>
+      <div style="font-weight:700;font-size:.88rem;color:var(--text);margin-bottom:.3rem;">{{ title }}</div>
+      <div style="font-size:.78rem;color:var(--text3);">{{ desc }}</div>
+    </div>
+    {% endfor %}
+  </div>
+</div>
+
+<div id="treatment" class="tab-content animate-3" style="display:none;">
+  <div class="card">
+    <div style="font-weight:700;color:var(--text);font-size:.95rem;margin-bottom:1rem;">Treatment Approaches by Diabetes Type</div>
+    <div style="overflow-x:auto;">
+      <table style="width:100%;border-collapse:collapse;font-size:.84rem;">
+        <tr style="background:var(--teal-lt);">
+          <th style="padding:.6rem .8rem;text-align:left;color:var(--teal);font-weight:700;">Approach</th>
+          <th style="padding:.6rem .8rem;text-align:center;color:var(--teal);font-weight:700;">Type 1</th>
+          <th style="padding:.6rem .8rem;text-align:center;color:var(--teal);font-weight:700;">Type 2</th>
+          <th style="padding:.6rem .8rem;text-align:center;color:var(--teal);font-weight:700;">Gestational</th>
+        </tr>
+        {% for row in [
+          ("Insulin","✅ Essential","Sometimes","Sometimes"),
+          ("Oral Medications","❌","✅ First-line","Limited"),
+          ("Diet & Exercise","✅ Supportive","✅ Core","✅ Core"),
+          ("Blood Sugar Monitoring","✅ Daily","✅ Regular","✅ Frequent"),
+          ("Bariatric Surgery","❌","Selected cases","❌")
+        ] %}
+        <tr style="{{ 'background:var(--surface2);' if loop.index is odd else '' }}">
+          <td style="padding:.5rem .8rem;font-weight:600;color:var(--text);">{{ row[0] }}</td>
+          {% for cell in row[1:] %}
+          <td style="padding:.5rem .8rem;text-align:center;color:var(--text2);">{{ cell }}</td>
+          {% endfor %}
+        </tr>
+        {% endfor %}
+      </table>
+    </div>
+  </div>
+</div>
+
+<script>
+function showTab(id){
+  document.querySelectorAll('.tab-content').forEach(el=>el.style.display='none');
+  document.querySelectorAll('.tab-btn').forEach(btn=>{
+    btn.style.background='var(--surface)';
+    btn.style.color='var(--text2)';
+    btn.style.borderColor='var(--border)';
+  });
+  document.getElementById(id).style.display='block';
+  const btn=document.getElementById('tab-'+id);
+  btn.style.background='var(--teal-lt)';
+  btn.style.color='var(--teal)';
+  btn.style.borderColor='var(--teal-mid)';
+}
+showTab('what');
+</script>
+{% endblock %}

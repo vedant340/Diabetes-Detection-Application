@@ -1,0 +1,377 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>MediAI — Sign In</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,600;0,9..144,700;1,9..144,300&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box;}
+:root{
+  --teal:#2BBFA0; --teal-dk:#1AA888; --teal-lt:#E6F7F4;
+  --blue:#4A90D9; --lav:#A8B4D8; --lav-lt:#EEF0FA;
+  --text:#1A2332; --text2:#5A6B7E; --text3:#8FA0B4;
+  --surface:#FFFFFF; --bg:#F7F9FC; --border:#E4EAF0;
+}
+html,body{width:100%;height:100vh;overflow:hidden;font-family:'DM Sans',sans-serif;}
+body{background:var(--bg);}
+
+/* ── 50/50 grid ── */
+.page{display:grid;grid-template-columns:1fr 1fr;height:100vh;width:100vw;}
+
+/* ════════ LEFT ════════ */
+.left{
+  background:linear-gradient(160deg,#1B4F72 0%,#2E86AB 30%,#48B3A4 65%,#6BCFB5 100%);
+  position:relative; overflow:hidden;
+  display:flex; flex-direction:column;
+  padding:2.8rem 3.2rem;
+}
+
+/* dot grid */
+.left::before{
+  content:'';position:absolute;inset:0;pointer-events:none;opacity:.06;
+  background-image:radial-gradient(circle,#fff 1px,transparent 1px);
+  background-size:32px 32px;
+}
+/* ambient glow */
+.left::after{
+  content:'';position:absolute;
+  width:500px;height:500px;border-radius:50%;
+  background:radial-gradient(circle,rgba(255,255,255,.12),transparent 65%);
+  top:-100px;right:-150px;pointer-events:none;
+}
+/* bottom wave */
+.wave{
+  position:absolute;bottom:0;left:0;right:0;
+  height:120px;pointer-events:none;
+}
+
+.lc{position:relative;z-index:1;height:100%;display:flex;flex-direction:column;}
+
+/* logo */
+.logo{display:flex;align-items:center;gap:.8rem;margin-bottom:auto;}
+.logo-box{
+  width:44px;height:44px;border-radius:12px;
+  background:rgba(255,255,255,.22);
+  border:1.5px solid rgba(255,255,255,.35);
+  display:flex;align-items:center;justify-content:center;font-size:1.35rem;
+  box-shadow:0 8px 20px rgba(0,0,0,.1);
+}
+.logo-name{font-family:'Fraunces',serif;font-size:1.15rem;font-weight:700;color:#fff;line-height:1;}
+.logo-sub{font-size:.6rem;color:rgba(255,255,255,.55);letter-spacing:.1em;text-transform:uppercase;margin-top:.15rem;}
+
+/* hero */
+.hero{flex:1;display:flex;flex-direction:column;justify-content:center;padding:1.5rem 0;}
+
+.badge{
+  display:inline-flex;align-items:center;gap:.45rem;
+  background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.25);
+  border-radius:30px;padding:.28rem .9rem;font-size:.68rem;font-weight:600;
+  color:rgba(255,255,255,.95);letter-spacing:.04em;margin-bottom:1.5rem;width:fit-content;
+  backdrop-filter:blur(6px);
+}
+.badge-dot{
+  width:7px;height:7px;border-radius:50%;background:#B8F0E0;
+  box-shadow:0 0 8px rgba(184,240,224,.8);display:inline-block;
+  animation:bdot 1.8s ease-in-out infinite;
+}
+@keyframes bdot{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.3;transform:scale(1.5)}}
+
+h1{
+  font-family:'Fraunces',serif;font-size:2.7rem;font-weight:700;
+  line-height:1.1;color:#fff;letter-spacing:-.02em;margin-bottom:.9rem;
+}
+h1 em{font-style:italic;color:#B8F0E0;}
+.desc{font-size:.88rem;color:rgba(255,255,255,.7);line-height:1.75;max-width:340px;margin-bottom:2rem;}
+
+/* ECG */
+.ecg-wrap{margin-bottom:2rem;}
+.ep1{stroke-dasharray:680;stroke-dashoffset:680;animation:ecgDraw 2.4s ease-in-out infinite;filter:drop-shadow(0 0 5px rgba(184,240,224,.7));}
+.ep2{stroke-dasharray:680;stroke-dashoffset:680;animation:ecgDraw 2.4s ease-in-out infinite .45s;opacity:.3;}
+@keyframes ecgDraw{0%{stroke-dashoffset:680;opacity:1}65%{stroke-dashoffset:0;opacity:1}100%{stroke-dashoffset:-680;opacity:0}}
+
+/* stats */
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:.7rem;}
+.stat{
+  background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.18);
+  border-radius:14px;padding:.8rem .9rem;backdrop-filter:blur(8px);
+  transition:background .2s;
+}
+.stat:hover{background:rgba(255,255,255,.2);}
+.sv{font-family:'Fraunces',serif;font-size:1.3rem;font-weight:700;color:#fff;}
+.sl{font-size:.62rem;color:rgba(255,255,255,.55);margin-top:.1rem;}
+
+/* feats */
+.feats{display:flex;flex-direction:column;gap:.55rem;margin-top:1.6rem;}
+.feat{
+  display:flex;align-items:center;gap:.75rem;
+  background:rgba(255,255,255,.09);border:1px solid rgba(255,255,255,.12);
+  border-radius:11px;padding:.58rem .9rem;
+}
+.fi{width:30px;height:30px;border-radius:8px;
+  display:flex;align-items:center;justify-content:center;font-size:.85rem;flex-shrink:0;}
+.ft{font-weight:600;color:rgba(255,255,255,.95);font-size:.78rem;}
+.fd{font-size:.68rem;color:rgba(255,255,255,.5);margin-top:.03rem;}
+
+/* footer */
+.lfoot{font-size:.68rem;color:rgba(255,255,255,.3);
+  display:flex;justify-content:space-between;margin-top:auto;padding-top:1.5rem;}
+
+/* ════════ RIGHT ════════ */
+.right{
+  background:#FFFFFF;
+  display:flex;align-items:center;justify-content:center;
+  padding:2rem; position:relative; overflow:hidden;
+}
+/* subtle pattern */
+.right::before{
+  content:'';position:absolute;inset:0;pointer-events:none;opacity:.35;
+  background-image:radial-gradient(circle,#E4EAF0 1px,transparent 1px);
+  background-size:28px 28px;
+}
+.right::after{
+  content:'';position:absolute;top:-120px;right:-120px;
+  width:380px;height:380px;border-radius:50%;
+  background:radial-gradient(circle,rgba(43,191,160,.07),transparent 65%);
+  pointer-events:none;
+}
+
+/* Form card */
+.form-card{
+  position:relative;z-index:1;width:100%;max-width:420px;
+  background:#fff;
+  border:1px solid #E4EAF0;
+  border-radius:24px;
+  padding:2.6rem 2.6rem 2.2rem;
+  box-shadow:
+    0 0 0 1px rgba(43,191,160,.05),
+    0 4px 8px rgba(0,0,0,.04),
+    0 20px 50px rgba(43,191,160,.1),
+    0 40px 80px rgba(0,0,0,.04);
+  animation:cardIn .55s cubic-bezier(.16,1,.3,1) both;
+}
+@keyframes cardIn{from{opacity:0;transform:translateY(20px) scale(.97)}to{opacity:1;transform:translateY(0) scale(1)}}
+
+.form-status{
+  display:inline-flex;align-items:center;gap:.4rem;
+  background:#E6F7F4;border:1px solid #A8E6DA;border-radius:30px;
+  padding:.26rem .8rem;font-size:.68rem;font-weight:700;color:#2BBFA0;
+  letter-spacing:.05em;margin-bottom:1.8rem;
+}
+.sdot{width:6px;height:6px;border-radius:50%;background:#22C55E;
+  box-shadow:0 0 6px #22C55E;display:inline-block;
+  animation:bdot 2s ease-in-out infinite;}
+
+.form-title{
+  font-family:'Fraunces',serif;font-size:1.85rem;font-weight:700;
+  color:#1A2332;letter-spacing:-.02em;line-height:1.15;margin-bottom:.32rem;
+}
+.form-sub{font-size:.84rem;color:#5A6B7E;margin-bottom:2rem;line-height:1.5;}
+
+/* Input group */
+.inp-g{margin-bottom:1rem;}
+.inp-l{display:block;font-size:.72rem;font-weight:700;color:#2BBFA0;
+  letter-spacing:.08em;text-transform:uppercase;margin-bottom:.42rem;}
+.inp{
+  width:100%;padding:.76rem 1rem;
+  background:#F7F9FC;border:1.5px solid #E4EAF0;border-radius:12px;
+  font-size:.9rem;font-family:'DM Sans',sans-serif;color:#1A2332;
+  outline:none;transition:border-color .2s,box-shadow .2s,background .2s;
+}
+.inp::placeholder{color:#B0BEC5;}
+.inp:focus{
+  border-color:#2BBFA0;background:#fff;
+  box-shadow:0 0 0 3px rgba(43,191,160,.12),0 2px 8px rgba(43,191,160,.08);
+}
+
+/* Buttons */
+.btn-main{
+  width:100%;padding:.85rem;margin-top:1.2rem;
+  background:linear-gradient(135deg,#2BBFA0,#1AA888,#4A90D9);
+  background-size:200% 100%;
+  color:#fff;font-family:'DM Sans',sans-serif;
+  font-size:.95rem;font-weight:700;letter-spacing:.01em;
+  border:none;border-radius:13px;cursor:pointer;
+  box-shadow:0 4px 18px rgba(43,191,160,.4);
+  transition:background-position .4s,transform .2s,box-shadow .2s;
+}
+.btn-main:hover{
+  background-position:100% 50%;transform:translateY(-2px);
+  box-shadow:0 8px 28px rgba(43,191,160,.5);
+}
+.btn-main:active{transform:translateY(0);}
+
+/* OR */
+.or{display:flex;align-items:center;gap:.7rem;margin:.8rem 0;}
+.or-l{flex:1;height:1px;background:#E4EAF0;}
+.or-t{font-size:.7rem;color:#B0BEC5;font-weight:600;letter-spacing:.05em;}
+
+.btn-demo{
+  width:100%;padding:.72rem;
+  background:transparent;color:#2BBFA0;
+  font-family:'DM Sans',sans-serif;font-size:.85rem;font-weight:600;
+  border:1.5px solid #A8E6DA;border-radius:12px;cursor:pointer;
+  transition:all .2s;
+}
+.btn-demo:hover{background:#E6F7F4;border-color:#2BBFA0;}
+
+/* demo box */
+.demo-box{
+  background:#F7F9FC;border:1px solid #E4EAF0;border-radius:12px;
+  padding:.85rem 1rem;margin-top:.75rem;
+}
+.demo-hdr{font-size:.65rem;font-weight:700;color:#8FA0B4;
+  letter-spacing:.09em;text-transform:uppercase;margin-bottom:.5rem;}
+.demo-row{display:flex;align-items:center;justify-content:space-between;padding:.18rem 0;}
+.demo-row+.demo-row{border-top:1px solid #F0F4F8;margin-top:.18rem;padding-top:.18rem;}
+.chip-sm{font-size:.68rem;font-weight:700;padding:.14rem .5rem;border-radius:6px;}
+.chip-teal{background:#E6F7F4;color:#2BBFA0;}
+.chip-grn {background:#ECFDF5;color:#166534;}
+.cred{font-size:.75rem;color:#5A6B7E;font-family:monospace;}
+
+.trust{display:flex;justify-content:space-around;
+  padding-top:.9rem;margin-top:.8rem;border-top:1px solid #F0F4F8;}
+.ti{text-align:center;}
+.tic{font-size:.95rem;}
+.til{font-size:.58rem;color:#B0BEC5;margin-top:.12rem;font-weight:600;letter-spacing:.03em;}
+
+/* error */
+.error-msg{
+  background:#FDEAEA;border:1px solid #FECACA;color:#E05252;
+  border-radius:10px;padding:.65rem 1rem;font-size:.82rem;font-weight:600;
+  margin-bottom:1rem;display:flex;align-items:center;gap:.5rem;
+}
+
+/* loading spinner on btn */
+.btn-main.loading{pointer-events:none;opacity:.8;}
+.btn-main.loading::after{
+  content:'';display:inline-block;width:14px;height:14px;
+  border:2px solid rgba(255,255,255,.4);border-top-color:#fff;
+  border-radius:50%;animation:spin .7s linear infinite;margin-left:.6rem;
+  vertical-align:middle;
+}
+@keyframes spin{to{transform:rotate(360deg)}}
+</style>
+</head>
+<body>
+<div class="page">
+
+  <!-- ════ LEFT ════ -->
+  <div class="left">
+    <!-- Wave -->
+    <svg class="wave" viewBox="0 0 1440 120" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M0,60 C360,120 1080,0 1440,60 L1440,120 L0,120 Z" fill="rgba(255,255,255,.06)"/>
+    </svg>
+
+    <div class="lc">
+      <div class="logo">
+        <div class="logo-box">🩺</div>
+        <div>
+          <div class="logo-name">MediAI</div>
+          <div class="logo-sub">Diabetes Detection System</div>
+        </div>
+      </div>
+
+      <div class="hero">
+        <div class="badge"><span class="badge-dot"></span>⚕️ &nbsp;Clinical AI Platform · v2.0</div>
+        <h1>Early Detection<br><em>Saves Lives</em></h1>
+        <p class="desc">A next-generation AI platform for diabetes risk assessment, health analysis and clinical decision support — built for modern healthcare.</p>
+
+        <div class="ecg-wrap">
+          <svg viewBox="0 0 400 34" width="100%" height="30">
+            <polyline class="ep1" points="0,17 32,17 45,3 55,31 67,17 99,17 112,8 123,26 135,17 167,17 181,2 195,32 209,17 241,17 255,7 268,28 280,17 312,17 326,10 340,24 354,17 400,17" fill="none" stroke="#B8F0E0" stroke-width="2.2" stroke-linecap="round"/>
+            <polyline class="ep2" points="0,17 32,17 45,3 55,31 67,17 99,17 112,8 123,26 135,17 167,17 181,2 195,32 209,17 241,17 255,7 268,28 280,17 312,17 326,10 340,24 354,17 400,17" fill="none" stroke="#fff" stroke-width="1" stroke-linecap="round"/>
+          </svg>
+        </div>
+
+        <div class="stats">
+          <div class="stat"><div class="sv">79%</div><div class="sl">CV Accuracy</div></div>
+          <div class="stat"><div class="sv">82%</div><div class="sl">ROC-AUC</div></div>
+          <div class="stat"><div class="sv">768</div><div class="sl">Patients</div></div>
+        </div>
+
+        <div class="feats">
+          <div class="feat">
+            <div class="fi" style="background:rgba(184,240,224,.2)">📊</div>
+            <div><div class="ft">Real-time SVM Analysis</div><div class="fd">GridSearchCV · RBF · K-Fold</div></div>
+          </div>
+          <div class="feat">
+            <div class="fi" style="background:rgba(255,255,255,.12)">🧬</div>
+            <div><div class="ft">Advanced ML Pipeline</div><div class="fd">StandardScaler · Feature Engineering</div></div>
+          </div>
+          <div class="feat">
+            <div class="fi" style="background:rgba(168,180,216,.2)">🌍</div>
+            <div><div class="ft">Global Health Insights</div><div class="fd">537M patients · World diabetes map</div></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="lfoot"><span>© 2025 MediAI · Healthcare Platform</span><span>v2.0</span></div>
+    </div>
+  </div>
+
+  <!-- ════ RIGHT ════ -->
+  <div class="right">
+    <div class="form-card">
+
+      <div class="form-status"><span class="sdot"></span>AI System Online</div>
+      <div class="form-title">Welcome back 👋</div>
+      <div class="form-sub">Sign in to your clinical AI health dashboard.</div>
+
+      {% if error %}
+      <div class="error-msg">⚠️ {{ error }}</div>
+      {% endif %}
+
+      <form method="POST" action="/login" id="loginForm">
+        <div class="inp-g">
+          <label class="inp-l">Username</label>
+          <input name="username" class="inp" type="text" placeholder="doctor / admin / any name" autocomplete="username">
+        </div>
+        <div class="inp-g">
+          <label class="inp-l">Password</label>
+          <input name="password" class="inp" type="password" placeholder="Enter any password" autocomplete="current-password">
+        </div>
+        <button type="submit" class="btn-main" id="signInBtn">🚀 &nbsp;Sign in to MediAI</button>
+      </form>
+
+      <div class="or"><div class="or-l"></div><span class="or-t">OR</span><div class="or-l"></div></div>
+
+      <form method="POST" action="/login">
+        <input type="hidden" name="demo" value="1">
+        <button type="submit" class="btn-demo">👁 &nbsp;Try Demo — no credentials needed</button>
+      </form>
+
+      <div class="demo-box">
+        <div class="demo-hdr">🔑 Demo Credentials</div>
+        <div class="demo-row">
+          <span class="chip-sm chip-teal">Doctor</span>
+          <span class="cred">doctor / 1234</span>
+        </div>
+        <div class="demo-row">
+          <span class="chip-sm chip-grn">Open Access</span>
+          <span class="cred">any / any</span>
+        </div>
+      </div>
+
+      <div class="trust">
+        <div class="ti"><div class="tic">🏥</div><div class="til">Clinical</div></div>
+        <div class="ti"><div class="tic">🔒</div><div class="til">Secure</div></div>
+        <div class="ti"><div class="tic">🧬</div><div class="til">SVM AI</div></div>
+        <div class="ti"><div class="tic">⚡</div><div class="til">Real-time</div></div>
+        <div class="ti"><div class="tic">☁️</div><div class="til">SaaS</div></div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<script>
+document.getElementById('loginForm').addEventListener('submit', function(){
+  const btn = document.getElementById('signInBtn');
+  btn.textContent = 'Signing in…';
+  btn.classList.add('loading');
+});
+</script>
+</body>
+</html>

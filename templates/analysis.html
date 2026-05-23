@@ -1,0 +1,279 @@
+{% extends "base.html" %}
+{% block title %}AI Analysis{% endblock %}
+{% block content %}
+
+<div class="page-header animate-1">
+  <div class="page-title">🔬 AI Diabetes Analysis</div>
+  <div class="page-sub">Enter health metrics for instant SVM-powered diabetes risk assessment</div>
+</div>
+
+<div class="grid-2 animate-2" style="align-items:start;">
+
+  <!-- Input form -->
+  <div class="card">
+    <div style="font-weight:700;font-size:1rem;color:var(--text);margin-bottom:1.2rem;
+      display:flex;align-items:center;gap:.5rem;">
+      📝 <span>Health Metrics Input</span>
+    </div>
+    <form method="POST" action="/analysis" id="analysisForm">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:.85rem;">
+        {% set fields = [
+          ("preg",   "🤰 Pregnancies",      "0",  "20",  "1",    "Number of times pregnant"),
+          ("glucose","🩸 Glucose (mg/dL)",   "50", "300", "120",  "Plasma glucose concentration"),
+          ("bp",     "💉 Blood Pressure",    "30", "130", "70",   "Diastolic blood pressure (mmHg)"),
+          ("skin",   "📏 Skin Thickness",    "5",  "100", "25",   "Triceps skin fold (mm)"),
+          ("insulin","💊 Insulin (μU/mL)",   "5",  "900", "125",  "2-hour serum insulin"),
+          ("bmi",    "⚖️ BMI",               "10", "70",  "25.0", "Body Mass Index"),
+          ("dpf",    "🧬 Diabetes Pedigree", "0.05","3.0","0.47", "Genetic risk function"),
+          ("age",    "🎂 Age (years)",       "1",  "100", "30",   "Patient age")
+        ] %}
+        {% for name,label,mn,mx,default,help in fields %}
+        <div>
+          <label style="display:block;font-size:.7rem;font-weight:700;color:var(--teal);
+            letter-spacing:.07em;text-transform:uppercase;margin-bottom:.35rem;">{{ label }}</label>
+          <input type="number" name="{{ name }}" value="{{ request.form.get(name, default) }}"
+            min="{{ mn }}" max="{{ mx }}" step="{{ '0.01' if '.' in default else '1' }}"
+            title="{{ help }}"
+            style="width:100%;padding:.65rem .9rem;background:var(--surface2);
+            border:1.5px solid var(--border);border-radius:10px;font-size:.9rem;
+            color:var(--text);outline:none;transition:border-color .2s,box-shadow .2s;"
+            onfocus="this.style.borderColor='var(--teal)';this.style.boxShadow='0 0 0 3px rgba(43,191,160,.12)'"
+            onblur="this.style.borderColor='var(--border)';this.style.boxShadow='none'"
+            required>
+        </div>
+        {% endfor %}
+      </div>
+
+      <button type="submit" id="analyzeBtn"
+        style="width:100%;margin-top:1.3rem;padding:.85rem;
+        background:linear-gradient(135deg,var(--teal),#1AA888,var(--blue));
+        background-size:200% 100%;
+        color:#fff;font-family:'DM Sans',sans-serif;font-size:.95rem;font-weight:700;
+        border:none;border-radius:13px;cursor:pointer;letter-spacing:.01em;
+        box-shadow:0 4px 18px rgba(43,191,160,.38);
+        transition:background-position .4s,transform .2s,box-shadow .2s;">
+        🚀 &nbsp;Run AI Analysis
+      </button>
+    </form>
+  </div>
+
+  <!-- Reference + model info -->
+  <div style="display:flex;flex-direction:column;gap:1rem;">
+    <div class="card">
+      <div style="font-weight:700;font-size:.9rem;color:var(--text);margin-bottom:.9rem;">ℹ️ Reference Ranges</div>
+      <table style="width:100%;border-collapse:collapse;font-size:.82rem;">
+        <tr style="background:var(--surface2);">
+          <th style="padding:.45rem .6rem;text-align:left;color:var(--text3);font-weight:700;border-radius:8px 0 0 8px;">Metric</th>
+          <th style="padding:.45rem .6rem;text-align:center;color:var(--text3);font-weight:700;">Normal</th>
+          <th style="padding:.45rem .6rem;text-align:center;color:var(--text3);font-weight:700;border-radius:0 8px 8px 0;">Alert</th>
+        </tr>
+        {% set refs = [
+          ("Glucose","70–99 mg/dL","≥126 diabetic"),
+          ("Blood Pressure","< 80 mmHg","≥90 high"),
+          ("BMI","18.5–24.9","≥30 obese"),
+          ("Insulin","16–166 μU/mL","—"),
+          ("Skin","10–40 mm","—")
+        ] %}
+        {% for m,n,a in refs %}
+        <tr style="{{ 'background:var(--surface2);' if loop.index is odd else '' }}">
+          <td style="padding:.38rem .6rem;color:var(--text2);">{{ m }}</td>
+          <td style="padding:.38rem .6rem;text-align:center;color:var(--teal);font-weight:600;">{{ n }}</td>
+          <td style="padding:.38rem .6rem;text-align:center;color:var(--text3);font-size:.78rem;">{{ a }}</td>
+        </tr>
+        {% endfor %}
+      </table>
+    </div>
+
+    <div class="card">
+      <div style="font-weight:700;font-size:.9rem;color:var(--text);margin-bottom:.75rem;">🤖 About the SVM Model</div>
+      <p style="font-size:.82rem;color:var(--text2);line-height:1.65;margin-bottom:.8rem;">
+        Uses a <strong>Support Vector Machine</strong> with RBF kernel, trained on the Pima Indians Diabetes Dataset using GridSearchCV hyperparameter tuning.
+      </p>
+      <div style="display:flex;flex-wrap:wrap;gap:.4rem;">
+        <span class="chip chip-teal">CV: 79.15%</span>
+        <span class="chip chip-blue">ROC-AUC: 82%</span>
+        <span class="chip" style="background:var(--lav-lt);color:var(--lavender);">RBF Kernel</span>
+        <span class="chip chip-teal">GridSearchCV</span>
+        <span class="chip chip-blue">K-Fold CV</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ── RESULTS ── -->
+{% if result %}
+{% if result.error %}
+<div style="background:var(--danger-lt);border:1px solid #FECACA;border-radius:14px;
+  padding:1rem 1.4rem;margin-top:1.5rem;color:var(--danger);font-weight:600;">
+  ⚠️ Error: {{ result.error }}
+</div>
+{% else %}
+
+<div style="margin-top:2rem;" class="animate-1">
+  <div style="height:1px;background:var(--border);margin-bottom:1.5rem;"></div>
+
+  <!-- Main result banner -->
+  {% if result.pred == 1 %}
+  <div style="background:linear-gradient(135deg,#FFF5F5,#FEF2F2);
+    border:1.5px solid #FECACA;border-radius:18px;padding:1.5rem 2rem;
+    margin-bottom:1.5rem;display:flex;align-items:center;justify-content:space-between;
+    box-shadow:0 4px 20px rgba(224,82,82,.1);">
+    <div>
+      <div style="font-size:1.2rem;font-weight:800;color:var(--danger);margin-bottom:.3rem;">
+        ⚠️ Diabetes Risk Detected
+      </div>
+      <div style="font-size:.88rem;color:#9B2C2C;">
+        The AI model predicts a <strong>HIGH likelihood</strong> of diabetes.
+        Please consult a healthcare professional immediately.
+      </div>
+    </div>
+    <div style="text-align:right;flex-shrink:0;margin-left:1.5rem;">
+      <div style="font-family:'Fraunces',serif;font-size:2.5rem;font-weight:700;color:var(--danger);line-height:1;">{{ result.pd }}%</div>
+      <div style="font-size:.75rem;color:#9B2C2C;">Diabetes Probability</div>
+      <div style="font-size:.78rem;color:var(--text3);margin-top:.2rem;">Confidence: {{ result.conf }}%</div>
+    </div>
+  </div>
+  {% else %}
+  <div style="background:linear-gradient(135deg,#F0FDF4,#ECFDF5);
+    border:1.5px solid #A7F3D0;border-radius:18px;padding:1.5rem 2rem;
+    margin-bottom:1.5rem;display:flex;align-items:center;justify-content:space-between;
+    box-shadow:0 4px 20px rgba(43,191,160,.1);">
+    <div>
+      <div style="font-size:1.2rem;font-weight:800;color:var(--teal);margin-bottom:.3rem;">
+        ✅ No Diabetes Detected
+      </div>
+      <div style="font-size:.88rem;color:#065F46;">
+        The AI model predicts a <strong>LOW likelihood</strong> of diabetes.
+        Maintain your healthy lifestyle!
+      </div>
+    </div>
+    <div style="text-align:right;flex-shrink:0;margin-left:1.5rem;">
+      <div style="font-family:'Fraunces',serif;font-size:2.5rem;font-weight:700;color:var(--teal);line-height:1;">{{ result.ph }}%</div>
+      <div style="font-size:.75rem;color:#065F46;">Healthy Probability</div>
+      <div style="font-size:.78rem;color:var(--text3);margin-top:.2rem;">Confidence: {{ result.conf }}%</div>
+    </div>
+  </div>
+  {% endif %}
+
+  <!-- 4 health status cards -->
+  <div class="grid-4" style="margin-bottom:1.5rem;">
+    {% set statuses = [
+      ("⚖️ BMI",result.bmi_s),("🩸 Glucose",result.gluc_s),
+      ("💉 Blood Pressure",result.bp_s),("🎂 Age Risk",result.age_s)
+    ] %}
+    {% for label,(status,stype) in statuses %}
+    {% set bg = {'success':'var(--teal-lt)','warning':'var(--warn-lt)','danger':'var(--danger-lt)'}[stype] %}
+    {% set cl = {'success':'var(--teal)','warning':'var(--warn)','danger':'var(--danger)'}[stype] %}
+    <div class="card" style="text-align:center;padding:1rem;background:{{ bg }};border-color:transparent;">
+      <div style="font-size:.72rem;color:var(--text3);">{{ label }}</div>
+      <div style="font-size:1.4rem;margin:.3rem 0;">
+        {{ '✅' if stype=='success' else '🟠' if stype=='warning' else '🔴' }}
+      </div>
+      <div style="font-size:.85rem;font-weight:700;color:{{ cl }};">{{ status }}</div>
+    </div>
+    {% endfor %}
+  </div>
+
+  <!-- Probability bar -->
+  <div class="card" style="margin-bottom:1.5rem;">
+    <div style="font-weight:700;font-size:.9rem;color:var(--text);margin-bottom:1rem;">📊 Probability Breakdown</div>
+    <div style="margin-bottom:.8rem;">
+      <div style="display:flex;justify-content:space-between;margin-bottom:.35rem;">
+        <span style="font-size:.82rem;color:var(--text2);">Diabetes Risk</span>
+        <span style="font-size:.82rem;font-weight:700;color:var(--danger);">{{ result.pd }}%</span>
+      </div>
+      <div style="height:10px;background:var(--surface2);border-radius:10px;overflow:hidden;">
+        <div style="width:{{ result.pd }}%;height:100%;border-radius:10px;
+          background:linear-gradient(90deg,#F59E0B,var(--danger));
+          transition:width .8s ease;"></div>
+      </div>
+    </div>
+    <div>
+      <div style="display:flex;justify-content:space-between;margin-bottom:.35rem;">
+        <span style="font-size:.82rem;color:var(--text2);">Healthy Probability</span>
+        <span style="font-size:.82rem;font-weight:700;color:var(--teal);">{{ result.ph }}%</span>
+      </div>
+      <div style="height:10px;background:var(--surface2);border-radius:10px;overflow:hidden;">
+        <div style="width:{{ result.ph }}%;height:100%;border-radius:10px;
+          background:linear-gradient(90deg,var(--teal),#1AA888);
+          transition:width .8s ease;"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Guidance -->
+  {% if result.pred == 1 %}
+  <div class="card">
+    <div style="font-weight:700;font-size:1rem;color:var(--text);margin-bottom:1.2rem;">🏥 Medical Guidance & Care Plan</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;">
+      <div style="background:var(--teal-lt);border-radius:12px;padding:1rem;">
+        <div style="font-weight:700;color:var(--teal);margin-bottom:.6rem;font-size:.88rem;">🥗 Diet Plan</div>
+        {% for item in ["Oatmeal + berries for breakfast","Brown rice + dal for lunch","Vegetable soup for dinner","Avoid sweets & sugary drinks","Drink 8–10 glasses water/day"] %}
+        <div style="font-size:.8rem;color:var(--text2);padding:.2rem 0;display:flex;align-items:center;gap:.4rem;">
+          <span style="color:var(--teal);">✓</span> {{ item }}
+        </div>
+        {% endfor %}
+      </div>
+      <div style="background:var(--blue-lt);border-radius:12px;padding:1rem;">
+        <div style="font-weight:700;color:var(--blue);margin-bottom:.6rem;font-size:.88rem;">🏃 Exercise Routine</div>
+        {% for item in ["30–45 min brisk walk daily","Yoga 30 min daily","Cycling 3–4x per week","Strength training 3x/week","Avoid sitting for >1 hour"] %}
+        <div style="font-size:.8rem;color:var(--text2);padding:.2rem 0;display:flex;align-items:center;gap:.4rem;">
+          <span style="color:var(--blue);">✓</span> {{ item }}
+        </div>
+        {% endfor %}
+      </div>
+      <div style="background:var(--lav-lt);border-radius:12px;padding:1rem;">
+        <div style="font-weight:700;color:var(--lavender);margin-bottom:.6rem;font-size:.88rem;">💊 Common Medications</div>
+        {% for item in ["Metformin (first-line)","Insulin (if needed)","Glimepiride","Sitagliptin","Empagliflozin"] %}
+        <div style="font-size:.8rem;color:var(--text2);padding:.2rem 0;display:flex;align-items:center;gap:.4rem;">
+          <span style="color:var(--lavender);">•</span> {{ item }}
+        </div>
+        {% endfor %}
+        <div style="font-size:.7rem;color:var(--text3);margin-top:.5rem;font-style:italic;">⚕️ Consult a doctor before any medication.</div>
+      </div>
+      <div style="background:var(--warn-lt);border-radius:12px;padding:1rem;">
+        <div style="font-weight:700;color:var(--warn);margin-bottom:.6rem;font-size:.88rem;">📅 Daily Routine</div>
+        {% for item in ["Check blood sugar on waking","Walk 30 min morning","Monitor post-meal glucose","Evening yoga/meditation","Log your readings daily"] %}
+        <div style="font-size:.8rem;color:var(--text2);padding:.2rem 0;display:flex;align-items:center;gap:.4rem;">
+          <span style="color:var(--warn);">→</span> {{ item }}
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+  {% else %}
+  <div class="card">
+    <div style="font-weight:700;font-size:1rem;color:var(--text);margin-bottom:1rem;">💚 Prevention Tips — Stay Healthy</div>
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:.8rem;">
+      {% for ic,title,desc in [
+        ("🥦","Balanced Diet","Vegetables, fruits & whole grains daily"),
+        ("🏃","Stay Active","150+ min/week moderate exercise"),
+        ("💧","Hydrate Well","8–10 glasses water, avoid sugary drinks"),
+        ("😴","Quality Sleep","7–8 hours nightly, consistent schedule"),
+        ("🧘","Manage Stress","10 min meditation daily, hobbies"),
+        ("🩺","Annual Checkup","Blood sugar screening especially after 35")
+      ] %}
+      <div style="background:var(--teal-lt);border-radius:12px;padding:.9rem;border:1px solid var(--teal-mid);">
+        <div style="font-size:1.5rem;margin-bottom:.4rem;">{{ ic }}</div>
+        <div style="font-weight:700;font-size:.82rem;color:var(--text);margin-bottom:.2rem;">{{ title }}</div>
+        <div style="font-size:.74rem;color:var(--text3);">{{ desc }}</div>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+  {% endif %}
+</div>
+{% endif %}
+{% endif %}
+
+{% endblock %}
+{% block scripts %}
+<script>
+document.getElementById('analyzeBtn').addEventListener('click', function(){
+  this.textContent = '⏳ Analysing…';
+  this.style.opacity = '.8';
+  this.style.pointerEvents = 'none';
+  setTimeout(()=>{ this.closest('form').submit(); }, 100);
+});
+</script>
+{% endblock %}

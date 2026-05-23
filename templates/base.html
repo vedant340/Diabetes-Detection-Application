@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>MediAI — {% block title %}Dashboard{% endblock %}</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,600;0,9..144,700;1,9..144,300&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+<style>
+:root {
+  --bg:         #F7F9FC;
+  --surface:    #FFFFFF;
+  --surface2:   #F0F4F8;
+  --border:     #E4EAF0;
+  --text:       #1A2332;
+  --text2:      #5A6B7E;
+  --text3:      #8FA0B4;
+  --teal:       #2BBFA0;
+  --teal-lt:    #E6F7F4;
+  --teal-mid:   #A8E6DA;
+  --blue:       #4A90D9;
+  --blue-lt:    #EBF4FF;
+  --mint:       #6DD4B8;
+  --sage:       #8BBF9F;
+  --lavender:   #A8B4D8;
+  --lav-lt:     #EEF0FA;
+  --warn:       #F5A623;
+  --warn-lt:    #FEF3E2;
+  --danger:     #E05252;
+  --danger-lt:  #FDEAEA;
+  --success:    #2BBFA0;
+  --success-lt: #E6F7F4;
+  --shadow-sm:  0 1px 4px rgba(26,35,50,.06);
+  --shadow-md:  0 4px 20px rgba(26,35,50,.08);
+  --shadow-lg:  0 12px 40px rgba(26,35,50,.1);
+  --radius:     16px;
+  --sidebar-w:  240px;
+}
+* { margin:0; padding:0; box-sizing:border-box; }
+body {
+  font-family:'DM Sans',sans-serif;
+  background:var(--bg); color:var(--text);
+  min-height:100vh;
+}
+
+/* ── Sidebar ── */
+.sidebar {
+  position:fixed; top:0; left:0; bottom:0;
+  width:var(--sidebar-w);
+  background:var(--surface);
+  border-right:1px solid var(--border);
+  display:flex; flex-direction:column;
+  padding:0;
+  box-shadow:var(--shadow-sm);
+  z-index:100;
+}
+.sidebar-logo {
+  padding:1.6rem 1.4rem 1.2rem;
+  border-bottom:1px solid var(--border);
+  display:flex; align-items:center; gap:.7rem;
+}
+.sidebar-logo-icon {
+  width:38px; height:38px; border-radius:10px;
+  background:linear-gradient(135deg,var(--teal),#1AA888);
+  display:flex; align-items:center; justify-content:center;
+  font-size:1.1rem; box-shadow:0 4px 12px rgba(43,191,160,.3);
+}
+.sidebar-logo-name {
+  font-family:'Fraunces',serif; font-size:1.15rem; font-weight:700;
+  color:var(--text); line-height:1;
+}
+.sidebar-logo-sub {
+  font-size:.62rem; color:var(--text3); letter-spacing:.06em;
+  text-transform:uppercase; margin-top:.18rem;
+}
+.sidebar-user {
+  padding:.9rem 1.4rem;
+  border-bottom:1px solid var(--border);
+  display:flex; align-items:center; gap:.6rem;
+}
+.sidebar-avatar {
+  width:32px; height:32px; border-radius:50%;
+  background:linear-gradient(135deg,var(--teal-lt),var(--lav-lt));
+  border:2px solid var(--teal-mid);
+  display:flex; align-items:center; justify-content:center;
+  font-size:.85rem;
+}
+.sidebar-uname { font-size:.82rem; font-weight:600; color:var(--text); }
+.sidebar-role  { font-size:.67rem; color:var(--text3); }
+
+.sidebar-nav {
+  flex:1; padding:.9rem .7rem;
+  display:flex; flex-direction:column; gap:.2rem;
+  overflow-y:auto;
+}
+.nav-link {
+  display:flex; align-items:center; gap:.65rem;
+  padding:.62rem .85rem; border-radius:11px;
+  text-decoration:none; color:var(--text2);
+  font-size:.85rem; font-weight:500;
+  transition:all .2s; position:relative;
+}
+.nav-link:hover {
+  background:var(--surface2); color:var(--text);
+}
+.nav-link.active {
+  background:var(--teal-lt); color:var(--teal);
+  font-weight:700;
+}
+.nav-link.active::before {
+  content:''; position:absolute; left:-7px; top:50%;
+  transform:translateY(-50%);
+  width:3px; height:18px; border-radius:2px;
+  background:var(--teal);
+}
+.nav-icon { font-size:1rem; width:20px; text-align:center; }
+.nav-label { flex:1; }
+.nav-badge {
+  background:var(--teal); color:#fff;
+  font-size:.6rem; font-weight:700;
+  padding:.18rem .45rem; border-radius:10px;
+  letter-spacing:.02em;
+}
+.nav-section {
+  font-size:.64rem; font-weight:700; color:var(--text3);
+  letter-spacing:.1em; text-transform:uppercase;
+  padding:.6rem .85rem .25rem;
+}
+
+.sidebar-footer {
+  padding:1rem 1.4rem;
+  border-top:1px solid var(--border);
+}
+.sidebar-stat {
+  background:linear-gradient(135deg,var(--teal-lt),var(--lav-lt));
+  border-radius:12px; padding:.75rem .9rem; margin-bottom:.7rem;
+  border:1px solid var(--teal-mid);
+}
+.sidebar-stat-val {
+  font-family:'Fraunces',serif; font-size:1.3rem; font-weight:700;
+  color:var(--teal);
+}
+.sidebar-stat-lbl { font-size:.67rem; color:var(--text3); margin-top:.08rem; }
+.logout-btn {
+  display:flex; align-items:center; gap:.5rem;
+  padding:.55rem .85rem; border-radius:10px;
+  text-decoration:none; color:var(--danger);
+  font-size:.82rem; font-weight:600;
+  transition:background .2s;
+}
+.logout-btn:hover { background:var(--danger-lt); }
+
+/* ── Main content ── */
+.main {
+  margin-left:var(--sidebar-w);
+  min-height:100vh;
+  padding:2rem 2.4rem;
+}
+.page-header {
+  margin-bottom:2rem;
+  animation:slideUp .4s ease both;
+}
+.page-title {
+  font-family:'Fraunces',serif;
+  font-size:1.8rem; font-weight:700; color:var(--text);
+  letter-spacing:-.02em; margin-bottom:.25rem;
+}
+.page-sub { font-size:.88rem; color:var(--text2); }
+
+/* ── Cards ── */
+.card {
+  background:var(--surface); border:1px solid var(--border);
+  border-radius:var(--radius); padding:1.4rem 1.6rem;
+  box-shadow:var(--shadow-sm);
+  transition:box-shadow .25s, transform .25s;
+}
+.card:hover { box-shadow:var(--shadow-md); }
+.card-title {
+  font-size:.7rem; font-weight:700; color:var(--text3);
+  letter-spacing:.09em; text-transform:uppercase; margin-bottom:.3rem;
+}
+.card-value {
+  font-family:'Fraunces',serif; font-size:1.9rem; font-weight:700;
+  color:var(--text); line-height:1.1;
+}
+.card-sub { font-size:.78rem; color:var(--text3); margin-top:.2rem; }
+
+/* ── Grid helpers ── */
+.grid-4 { display:grid; grid-template-columns:repeat(4,1fr); gap:1rem; }
+.grid-3 { display:grid; grid-template-columns:repeat(3,1fr); gap:1rem; }
+.grid-2 { display:grid; grid-template-columns:repeat(2,1fr); gap:1.2rem; }
+
+/* ── Chip/badge ── */
+.chip {
+  display:inline-flex; align-items:center; gap:.3rem;
+  padding:.28rem .75rem; border-radius:20px;
+  font-size:.72rem; font-weight:700; letter-spacing:.03em;
+}
+.chip-teal   { background:var(--teal-lt); color:var(--teal); }
+.chip-blue   { background:var(--blue-lt); color:var(--blue); }
+.chip-warn   { background:var(--warn-lt); color:var(--warn); }
+.chip-danger { background:var(--danger-lt); color:var(--danger); }
+.chip-lav    { background:var(--lav-lt); color:var(--lavender); }
+
+/* ── Dot ── */
+.dot-live {
+  width:7px; height:7px; border-radius:50%;
+  background:#2BBFA0; box-shadow:0 0 8px #2BBFA0;
+  display:inline-block;
+  animation:dpl 1.8s ease-in-out infinite;
+}
+@keyframes dpl { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:.3;transform:scale(1.5)} }
+@keyframes slideUp { from{opacity:0;transform:translateY(14px)} to{opacity:1;transform:translateY(0)} }
+@keyframes fadeIn  { from{opacity:0} to{opacity:1} }
+
+/* ── Animations ── */
+.animate-1 { animation:slideUp .4s .05s ease both; }
+.animate-2 { animation:slideUp .4s .1s  ease both; }
+.animate-3 { animation:slideUp .4s .15s ease both; }
+.animate-4 { animation:slideUp .4s .2s  ease both; }
+.animate-5 { animation:slideUp .4s .25s ease both; }
+
+/* ── Scrollbar ── */
+::-webkit-scrollbar { width:5px; }
+::-webkit-scrollbar-track { background:transparent; }
+::-webkit-scrollbar-thumb { background:var(--teal-mid); border-radius:10px; }
+</style>
+</head>
+<body>
+
+<!-- ═══ SIDEBAR ═══ -->
+<aside class="sidebar">
+  <div class="sidebar-logo">
+    <div class="sidebar-logo-icon">🩺</div>
+    <div>
+      <div class="sidebar-logo-name">MediAI</div>
+      <div class="sidebar-logo-sub">Diabetes Detection</div>
+    </div>
+  </div>
+
+  <div class="sidebar-user">
+    <div class="sidebar-avatar">👤</div>
+    <div>
+      <div class="sidebar-uname">{{ username }}</div>
+      <div class="sidebar-role">Clinical User</div>
+    </div>
+  </div>
+
+  <nav class="sidebar-nav">
+    <div class="nav-section">Main</div>
+    <a href="/dashboard" class="nav-link {% if request.endpoint == 'dashboard' %}active{% endif %}">
+      <span class="nav-icon">🏠</span>
+      <span class="nav-label">Dashboard</span>
+    </a>
+    <a href="/analysis" class="nav-link {% if request.endpoint == 'analysis' %}active{% endif %}">
+      <span class="nav-icon">🔬</span>
+      <span class="nav-label">AI Analysis</span>
+      <span class="nav-badge">AI</span>
+    </a>
+
+    <div class="nav-section">Explore</div>
+    <a href="/map" class="nav-link {% if request.endpoint == 'world_map' %}active{% endif %}">
+      <span class="nav-icon">🌍</span>
+      <span class="nav-label">Global Map</span>
+    </a>
+    <a href="/visualization" class="nav-link {% if request.endpoint == 'visualization' %}active{% endif %}">
+      <span class="nav-icon">📊</span>
+      <span class="nav-label">Data Visualization</span>
+    </a>
+    <a href="/info" class="nav-link {% if request.endpoint == 'info' %}active{% endif %}">
+      <span class="nav-icon">📚</span>
+      <span class="nav-label">Information</span>
+    </a>
+
+    <div class="nav-section">Account</div>
+    <a href="/history" class="nav-link {% if request.endpoint == 'history' %}active{% endif %}">
+      <span class="nav-icon">📜</span>
+      <span class="nav-label">History</span>
+    </a>
+  </nav>
+
+  <div class="sidebar-footer">
+    <div class="sidebar-stat">
+      <div class="sidebar-stat-val">79.15%</div>
+      <div class="sidebar-stat-lbl">SVM · CV Accuracy</div>
+    </div>
+    <a href="/logout" class="logout-btn">
+      <span>🚪</span> Sign Out
+    </a>
+  </div>
+</aside>
+
+<!-- ═══ MAIN ═══ -->
+<main class="main">
+  {% block content %}{% endblock %}
+</main>
+
+<script src="{{ url_for('static', filename='js/main.js') }}"></script>
+{% block scripts %}{% endblock %}
+</body>
+</html>

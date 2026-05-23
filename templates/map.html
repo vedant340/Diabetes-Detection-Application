@@ -1,0 +1,89 @@
+{% extends "base.html" %}
+{% block title %}Global Map{% endblock %}
+{% block content %}
+<div class="page-header animate-1">
+  <div class="page-title">🌍 Global Diabetes Map</div>
+  <div class="page-sub">Diabetes prevalence by country — IDF Atlas 2021</div>
+</div>
+
+<div class="card animate-2" style="margin-bottom:1.5rem;">
+  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem;">
+    <div style="font-weight:700;font-size:.95rem;color:var(--text);">World Diabetes Prevalence (%)</div>
+    <span class="chip chip-teal">537M adults affected globally</span>
+  </div>
+  <canvas id="worldChart" height="300"></canvas>
+</div>
+
+<div class="grid-2 animate-3" style="margin-bottom:1.5rem;">
+  <div class="card">
+    <div style="font-weight:700;font-size:.9rem;color:var(--text);margin-bottom:.9rem;">🏆 Top 10 Countries by Cases</div>
+    <table style="width:100%;border-collapse:collapse;font-size:.82rem;">
+      <tr style="background:var(--surface2);">
+        <th style="padding:.4rem .6rem;text-align:left;color:var(--text3);">Country</th>
+        <th style="padding:.4rem .6rem;text-align:center;color:var(--text3);">Cases (M)</th>
+        <th style="padding:.4rem .6rem;text-align:center;color:var(--text3);">Prevalence</th>
+      </tr>
+      {% for country,cases,prev in [
+        ("China","140.9","10.6%"),("India","74.2","8.3%"),
+        ("Pakistan","33.0","26.7%"),("USA","32.2","10.8%"),
+        ("Indonesia","19.5","7.6%"),("Brazil","15.7","10.2%"),
+        ("Mexico","14.1","13.1%"),("Egypt","10.9","17.2%"),
+        ("Japan","11.0","11.0%"),("Turkey","10.2","14.4%")
+      ] %}
+      <tr style="{{ 'background:var(--surface2);' if loop.index is odd else '' }}">
+        <td style="padding:.35rem .6rem;color:var(--text2);">{{ country }}</td>
+        <td style="padding:.35rem .6rem;text-align:center;font-weight:600;color:var(--text);">{{ cases }}</td>
+        <td style="padding:.35rem .6rem;text-align:center;">
+          <span class="chip {{ 'chip-danger' if prev|float > 15 else 'chip-warn' if prev|float > 10 else 'chip-teal' }}" style="font-size:.65rem;">{{ prev }}</span>
+        </td>
+      </tr>
+      {% endfor %}
+    </table>
+  </div>
+
+  <div class="card">
+    <div style="font-weight:700;font-size:.9rem;color:var(--text);margin-bottom:.9rem;">🌐 Cases by Continent</div>
+    <canvas id="contChart" height="260"></canvas>
+  </div>
+</div>
+
+<div class="grid-4 animate-4">
+  {% for icon,region,cases,prev,color in [
+    ("🌏","Asia","226M","9.6%","var(--teal)"),
+    ("🌍","Africa","24M","4.6%","var(--blue)"),
+    ("🌎","Americas","83M","10.5%","var(--lavender)"),
+    ("🏔️","Europe","61M","8.4%","var(--sage)")
+  ] %}
+  <div class="card" style="text-align:center;border-top:3px solid {{ color }};">
+    <div style="font-size:1.8rem;">{{ icon }}</div>
+    <div style="font-weight:700;font-size:.95rem;color:var(--text);margin:.3rem 0;">{{ region }}</div>
+    <div style="font-family:'Fraunces',serif;font-size:1.4rem;font-weight:700;color:{{ color }};">{{ cases }}</div>
+    <div class="chip chip-teal" style="margin-top:.4rem;font-size:.65rem;">{{ prev }} prevalence</div>
+  </div>
+  {% endfor %}
+</div>
+{% endblock %}
+{% block scripts %}
+<script>
+const countries = ['China','India','Pakistan','USA','Saudi Arabia','Egypt','Turkey','Mexico','Japan','Brazil','Indonesia','Germany','S.Africa','Australia','Canada'];
+const prevs     = [10.6,8.3,26.7,10.8,18.0,17.2,14.4,13.1,11.0,10.2,7.6,9.1,12.7,8.3,8.3];
+const colors    = prevs.map(v => v>15?'#E05252':v>10?'#F5A623':'#2BBFA0');
+
+new Chart(document.getElementById('worldChart').getContext('2d'),{
+  type:'bar',
+  data:{labels:countries,datasets:[{label:'Prevalence %',data:prevs,backgroundColor:colors,borderRadius:8,borderSkipped:false}]},
+  options:{responsive:true,plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>`${ctx.raw}% prevalence`}}},
+    scales:{x:{grid:{display:false},ticks:{font:{family:'DM Sans',size:11},color:'#8FA0B4'}},
+      y:{grid:{color:'rgba(0,0,0,.05)'},ticks:{font:{family:'DM Sans',size:11},color:'#8FA0B4'}}}}
+});
+
+new Chart(document.getElementById('contChart').getContext('2d'),{
+  type:'doughnut',
+  data:{labels:['Asia','Africa','N.America','Europe','S.America','Oceania'],
+    datasets:[{data:[226,24,51,61,32,2.5],
+      backgroundColor:['#2BBFA0','#4A90D9','#A8B4D8','#6DD4B8','#8BBF9F','#F5A623'],
+      borderColor:'#fff',borderWidth:3,hoverOffset:8}]},
+  options:{responsive:true,plugins:{legend:{position:'bottom',labels:{font:{family:'DM Sans',size:11},color:'#5A6B7E',padding:12}}},cutout:'55%'}
+});
+</script>
+{% endblock %}
