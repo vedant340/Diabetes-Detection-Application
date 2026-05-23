@@ -2,104 +2,179 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1">
 <title>MediAI — {% block title %}Dashboard{% endblock %}</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,600;0,9..144,700;1,9..144,300&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+
 <style>
-/* ════ MOBILE OVERLAY & HAMBURGER ════ */
-.sidebar-overlay{
-  display:none;position:fixed;inset:0;background:rgba(0,0,0,.35);
-  z-index:99;backdrop-filter:blur(2px);
+/* ═══════════════════════════════════════════════════════
+   ALL RESPONSIVE CSS — single source of truth
+   Overrides style.css with !important where needed
+   ═══════════════════════════════════════════════════════ */
+
+/* ── Global box-sizing fix ── */
+*, *::before, *::after { box-sizing: border-box; }
+html, body { overflow-x: hidden; }
+
+/* ── Overlay (mobile only) ── */
+#sidebar-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,.45);
+  z-index: 998;
+  backdrop-filter: blur(3px);
+  -webkit-backdrop-filter: blur(3px);
 }
-.sidebar-overlay.show{display:block;}
+#sidebar-overlay.active { display: block; }
 
-.hamburger{
-  display:none;position:fixed;top:1rem;left:1rem;z-index:200;
-  width:40px;height:40px;border-radius:10px;
-  background:var(--surface);border:1px solid var(--border);
-  box-shadow:var(--shadow-md);cursor:pointer;
-  align-items:center;justify-content:center;flex-direction:column;gap:5px;
-  padding:10px;transition:var(--transition);
+/* ── Hamburger (hidden on desktop) ── */
+#hamburger {
+  display: none;
+  position: fixed;
+  top: .85rem;
+  left: .85rem;
+  z-index: 1001;
+  width: 42px;
+  height: 42px;
+  border-radius: 11px;
+  background: #fff;
+  border: 1.5px solid #E4EAF0;
+  cursor: pointer;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  padding: 0;
+  box-shadow: 0 2px 12px rgba(26,35,50,.12);
+  transition: background .2s, box-shadow .2s;
+  outline: none;
+  -webkit-tap-highlight-color: transparent;
 }
-.hamburger span{
-  display:block;width:18px;height:2px;
-  background:var(--text);border-radius:2px;
-  transition:all .25s;
+#hamburger:hover { background: #E6F7F4; }
+#hamburger .bar {
+  display: block;
+  width: 18px;
+  height: 2px;
+  background: #1A2332;
+  border-radius: 2px;
+  transition: transform .25s ease, opacity .25s ease;
+  transform-origin: center;
 }
-.hamburger.open span:nth-child(1){transform:translateY(7px) rotate(45deg);}
-.hamburger.open span:nth-child(2){opacity:0;transform:translateX(-8px);}
-.hamburger.open span:nth-child(3){transform:translateY(-7px) rotate(-45deg);}
+/* Hamburger → X animation */
+#hamburger.is-open .bar:nth-child(1) { transform: translateY(7px) rotate(45deg); }
+#hamburger.is-open .bar:nth-child(2) { opacity: 0; transform: scaleX(0); }
+#hamburger.is-open .bar:nth-child(3) { transform: translateY(-7px) rotate(-45deg); }
 
-/* ════ RESPONSIVE BREAKPOINTS ════ */
-
-/* Tablet — 768-1024px */
-@media(max-width:1024px){
-  :root{--sidebar-w:220px;}
-  .main{padding:1.5rem 1.6rem;}
-  .grid-4{grid-template-columns:repeat(2,1fr);}
-  .page-title{font-size:1.5rem;}
-}
-
-/* Mobile — up to 768px */
-@media(max-width:768px){
-  :root{--sidebar-w:260px;}
-
-  .hamburger{display:flex;}
-
-  /* Sidebar slides in from left */
-  .sidebar{
-    transform:translateX(-100%);
-    transition:transform .28s cubic-bezier(.4,0,.2,1);
-    z-index:150;
-    box-shadow:4px 0 20px rgba(0,0,0,.15);
+/* ════════════════════════════
+   DESKTOP  (> 768px)
+   Sidebar always visible
+════════════════════════════ */
+@media (min-width: 769px) {
+  .sidebar {
+    position: fixed !important;
+    top: 0 !important; left: 0 !important; bottom: 0 !important;
+    width: 240px !important;
+    transform: none !important;
+    visibility: visible !important;
+    z-index: 100 !important;
   }
-  .sidebar.open{transform:translateX(0);}
+  .main { margin-left: 240px !important; padding: 2rem 2.4rem !important; }
+  #hamburger { display: none !important; }
 
-  .main{
-    margin-left:0 !important;
-    padding:4.5rem 1rem 1.2rem;
+  /* Tablet 769–1024 */
+  @media (max-width: 1024px) {
+    .sidebar { width: 220px !important; }
+    .main { margin-left: 220px !important; padding: 1.5rem 1.6rem !important; }
+    .grid-4 { grid-template-columns: repeat(2,1fr) !important; }
+  }
+}
+
+/* ════════════════════════════
+   MOBILE  (≤ 768px)
+   Sidebar off-screen, slides in
+════════════════════════════ */
+@media (max-width: 768px) {
+  /* Show hamburger */
+  #hamburger { display: flex !important; }
+
+  /* Sidebar: hide off-screen by default */
+  .sidebar {
+    position: fixed !important;
+    top: 0 !important; left: 0 !important; bottom: 0 !important;
+    width: 272px !important;
+    transform: translateX(-100%) !important;
+    transition: transform .28s cubic-bezier(.4,0,.2,1) !important;
+    z-index: 999 !important;
+    visibility: visible !important;
+    box-shadow: 6px 0 24px rgba(0,0,0,.18) !important;
   }
 
-  .grid-4,.grid-3{grid-template-columns:repeat(2,1fr);}
-  .grid-2{grid-template-columns:1fr;}
+  /* Sidebar open state — JS adds .sidebar-open class */
+  .sidebar.sidebar-open {
+    transform: translateX(0) !important;
+  }
 
-  .page-title{font-size:1.35rem;}
-  .page-sub{font-size:.82rem;}
-  .card{padding:1.1rem 1.2rem;}
-  .card-value{font-size:1.6rem;}
+  /* Main: full width, top padding for hamburger */
+  .main {
+    margin-left: 0 !important;
+    padding: 4.5rem 1rem 1.5rem !important;
+    width: 100% !important;
+  }
+
+  /* Grid responsive */
+  .grid-4, .grid-3 { grid-template-columns: repeat(2, 1fr) !important; }
+  .grid-2           { grid-template-columns: 1fr !important; }
+
+  /* Typography */
+  .page-title { font-size: 1.3rem !important; }
+  .page-sub   { font-size: .82rem !important; }
+  .card-value { font-size: 1.5rem !important; }
+
+  /* Cards */
+  .card { padding: 1rem 1.1rem !important; }
+
+  /* Overflow fix */
+  table { width: 100%; display: block; overflow-x: auto; -webkit-overflow-scrolling: touch; }
+
+  /* Charts */
+  canvas { max-height: 230px !important; }
+
+  /* Touch targets */
+  .nav-link { padding: .75rem .85rem !important; min-height: 44px !important; }
+  .btn, button[type=submit] { min-height: 44px !important; }
 }
 
-/* Small mobile — up to 480px */
-@media(max-width:480px){
-  .main{padding:4.2rem .75rem 1rem;}
-  .grid-4,.grid-3{grid-template-columns:1fr;}
-  .page-title{font-size:1.2rem;}
-  .card{padding:.9rem 1rem;}
-  table{font-size:.76rem;}
-  canvas{max-height:200px !important;}
-}
-
-/* Chart max height on mobile */
-@media(max-width:768px){
-  canvas{max-height:220px;}
+/* Small phones */
+@media (max-width: 480px) {
+  .main { padding: 4rem .75rem 1.2rem !important; }
+  .grid-4, .grid-3, .grid-2 { grid-template-columns: 1fr !important; }
+  .page-title { font-size: 1.15rem !important; }
+  .card { padding: .9rem .95rem !important; }
+  .card-value { font-size: 1.35rem !important; }
+  canvas { max-height: 180px !important; }
+  .chip { font-size: .66rem !important; }
 }
 </style>
 </head>
 <body>
 
-<!-- Hamburger button (mobile only) -->
-<button class="hamburger" id="hamburger" aria-label="Toggle menu">
-  <span></span><span></span><span></span>
+<!-- ── Hamburger button ── -->
+<button id="hamburger" aria-label="Open menu" aria-expanded="false">
+  <span class="bar"></span>
+  <span class="bar"></span>
+  <span class="bar"></span>
 </button>
 
-<!-- Overlay -->
-<div class="sidebar-overlay" id="overlay"></div>
+<!-- ── Overlay ── -->
+<div id="sidebar-overlay"></div>
 
 <!-- ═══ SIDEBAR ═══ -->
 <aside class="sidebar" id="sidebar">
+
   <div class="sidebar-logo">
     <div class="sidebar-logo-icon">🩺</div>
     <div>
@@ -116,30 +191,54 @@
     </div>
   </div>
 
-  <nav class="sidebar-nav">
+  <nav class="sidebar-nav" role="navigation">
     <div class="nav-section">Main</div>
-    <a href="/dashboard" class="nav-link {% if request.endpoint=='dashboard' %}active{% endif %}" onclick="closeSidebar()">
-      <span class="nav-icon">🏠</span><span class="nav-label">Dashboard</span>
+
+    <a href="/dashboard"
+       class="nav-link {% if request.endpoint=='dashboard' %}active{% endif %}"
+       data-nav>
+      <span class="nav-icon">🏠</span>
+      <span class="nav-label">Dashboard</span>
     </a>
-    <a href="/analysis" class="nav-link {% if request.endpoint=='analysis' %}active{% endif %}" onclick="closeSidebar()">
-      <span class="nav-icon">🔬</span><span class="nav-label">AI Analysis</span>
+
+    <a href="/analysis"
+       class="nav-link {% if request.endpoint=='analysis' %}active{% endif %}"
+       data-nav>
+      <span class="nav-icon">🔬</span>
+      <span class="nav-label">AI Analysis</span>
       <span class="nav-badge">AI</span>
     </a>
 
     <div class="nav-section">Explore</div>
-    <a href="/map" class="nav-link {% if request.endpoint=='world_map' %}active{% endif %}" onclick="closeSidebar()">
-      <span class="nav-icon">🌍</span><span class="nav-label">Global Map</span>
+
+    <a href="/map"
+       class="nav-link {% if request.endpoint=='world_map' %}active{% endif %}"
+       data-nav>
+      <span class="nav-icon">🌍</span>
+      <span class="nav-label">Global Map</span>
     </a>
-    <a href="/visualization" class="nav-link {% if request.endpoint=='visualization' %}active{% endif %}" onclick="closeSidebar()">
-      <span class="nav-icon">📊</span><span class="nav-label">Data Visualization</span>
+
+    <a href="/visualization"
+       class="nav-link {% if request.endpoint=='visualization' %}active{% endif %}"
+       data-nav>
+      <span class="nav-icon">📊</span>
+      <span class="nav-label">Data Visualization</span>
     </a>
-    <a href="/info" class="nav-link {% if request.endpoint=='info' %}active{% endif %}" onclick="closeSidebar()">
-      <span class="nav-icon">📚</span><span class="nav-label">Information</span>
+
+    <a href="/info"
+       class="nav-link {% if request.endpoint=='info' %}active{% endif %}"
+       data-nav>
+      <span class="nav-icon">📚</span>
+      <span class="nav-label">Information</span>
     </a>
 
     <div class="nav-section">Account</div>
-    <a href="/history" class="nav-link {% if request.endpoint=='history' %}active{% endif %}" onclick="closeSidebar()">
-      <span class="nav-icon">📜</span><span class="nav-label">History</span>
+
+    <a href="/history"
+       class="nav-link {% if request.endpoint=='history' %}active{% endif %}"
+       data-nav>
+      <span class="nav-icon">📜</span>
+      <span class="nav-label">History</span>
     </a>
   </nav>
 
@@ -148,41 +247,80 @@
       <div class="sidebar-stat-val">79.15%</div>
       <div class="sidebar-stat-lbl">SVM · CV Accuracy</div>
     </div>
-    <a href="/logout" class="logout-btn">🚪 Sign Out</a>
+    <a href="/logout" class="logout-btn" data-nav>🚪 Sign Out</a>
   </div>
 </aside>
 
-<!-- ═══ MAIN ═══ -->
-<main class="main">
+<!-- ═══ MAIN CONTENT ═══ -->
+<main class="main" id="main-content">
   {% block content %}{% endblock %}
 </main>
 
-<script src="{{ url_for('static', filename='js/main.js') }}"></script>
+<!-- ── JS: Sidebar toggle (inline — no external dep) ── -->
 <script>
-/* ── Sidebar toggle ── */
-const sidebar   = document.getElementById('sidebar');
-const hamburger = document.getElementById('hamburger');
-const overlay   = document.getElementById('overlay');
+(function () {
+  'use strict';
 
-hamburger.addEventListener('click', ()=>{
-  const open = sidebar.classList.toggle('open');
-  hamburger.classList.toggle('open', open);
-  overlay.classList.toggle('show', open);
-  document.body.style.overflow = open ? 'hidden' : '';
-});
+  var btn     = document.getElementById('hamburger');
+  var sidebar = document.getElementById('sidebar');
+  var overlay = document.getElementById('sidebar-overlay');
+  var isMobile = function () { return window.innerWidth <= 768; };
+  var isOpen  = false;
 
-overlay.addEventListener('click', closeSidebar);
-document.addEventListener('keydown', e=>{ if(e.key==='Escape') closeSidebar(); });
+  function openSidebar() {
+    isOpen = true;
+    sidebar.classList.add('sidebar-open');
+    overlay.classList.add('active');
+    btn.classList.add('is-open');
+    btn.setAttribute('aria-expanded', 'true');
+    document.body.style.overflow = 'hidden';
+  }
 
-function closeSidebar(){
-  sidebar.classList.remove('open');
-  hamburger.classList.remove('open');
-  overlay.classList.remove('show');
-  document.body.style.overflow = '';
-}
+  function closeSidebar() {
+    isOpen = false;
+    sidebar.classList.remove('sidebar-open');
+    overlay.classList.remove('active');
+    btn.classList.remove('is-open');
+    btn.setAttribute('aria-expanded', 'false');
+    document.body.style.overflow = '';
+  }
+
+  /* Hamburger click */
+  btn.addEventListener('click', function (e) {
+    e.stopPropagation();
+    if (isOpen) { closeSidebar(); } else { openSidebar(); }
+  });
+
+  /* Overlay click → close */
+  overlay.addEventListener('click', closeSidebar);
+
+  /* Escape key → close */
+  document.addEventListener('keydown', function (e) {
+    if (e.key === 'Escape' && isOpen) closeSidebar();
+  });
+
+  /* Nav links: close sidebar on mobile before navigating */
+  document.querySelectorAll('[data-nav]').forEach(function (link) {
+    link.addEventListener('click', function () {
+      if (isMobile() && isOpen) {
+        closeSidebar();
+        /* Small delay so close animation plays before navigation */
+        /* Navigation still happens via normal href */
+      }
+    });
+  });
+
+  /* Close sidebar when window resizes to desktop */
+  window.addEventListener('resize', function () {
+    if (!isMobile() && isOpen) closeSidebar();
+  });
+
+  /* Make closeSidebar available globally (used by onclick= attrs) */
+  window.closeSidebar = closeSidebar;
+})();
 
 /* ── Chart.js global defaults ── */
-if(typeof Chart !== 'undefined'){
+if (typeof Chart !== 'undefined') {
   Chart.defaults.font.family  = "'DM Sans', sans-serif";
   Chart.defaults.font.size    = 11;
   Chart.defaults.color        = '#8FA0B4';
@@ -194,6 +332,8 @@ if(typeof Chart !== 'undefined'){
   Chart.defaults.animation.duration              = 600;
 }
 </script>
+
+<script src="{{ url_for('static', filename='js/main.js') }}"></script>
 {% block scripts %}{% endblock %}
 </body>
 </html>

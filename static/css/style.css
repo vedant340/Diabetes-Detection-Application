@@ -526,38 +526,3 @@ a:hover { color: var(--teal-dk); }
   .grid-4, .grid-3, .grid-2 { grid-template-columns: 1fr; }
   .page-title { font-size: 1.4rem; }
 }
-
-/* ════════════════════════════════════════════════════
-   RESPONSIVE — added for mobile + tablet support
-   ════════════════════════════════════════════════════ */
-
-/* Tables scroll on small screens */
-.table-responsive { overflow-x: auto; -webkit-overflow-scrolling: touch; }
-.table-responsive table { min-width: 480px; }
-
-/* Cards: reduce padding on mobile */
-@media (max-width:768px) {
-  .card { padding: 1rem 1.1rem; }
-  .card-value { font-size: 1.55rem; }
-  .card-title { font-size: .65rem; }
-  .btn { padding: .62rem 1.1rem; font-size: .84rem; }
-  .chip { font-size: .68rem; padding: .22rem .6rem; }
-}
-
-/* Full-width grid on small mobile */
-@media (max-width:480px) {
-  .grid-4,
-  .grid-3,
-  .grid-2 { grid-template-columns: 1fr !important; }
-
-  .page-title { font-size: 1.2rem; }
-  .page-sub   { font-size: .8rem; }
-  .form-input { font-size: .88rem; padding: .62rem .85rem; }
-  .alert      { font-size: .8rem; }
-}
-
-/* Sidebar stat + logout readable on small sidebar */
-@media (max-width: 320px) {
-  :root { --sidebar-w: 240px; }
-  .sidebar-logo-name { font-size: 1rem; }
-}
